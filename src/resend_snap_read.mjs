@@ -87,10 +87,8 @@ function renderSummary(item) {
       <tr>
         <td style="padding:20px 20px 18px 20px;">
           <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Article Summary</div>
-          <div style="background:#f8f2e8;border-left:4px solid #0f5b4f;border-radius:12px;padding:14px 15px;font-size:16px;line-height:1.72;color:#2a2824;margin:0;">
-            ${paragraphize(item.summary)}
-            ${renderImages(item.images, item.title)}
-          </div>
+          ${renderImages((item.images || []).slice(0, 1), item.title)}
+          <div style="font-size:16px;line-height:1.72;color:#2a2824;margin:0;">${paragraphize(item.summary)}</div>
         </td>
       </tr>
     </table>

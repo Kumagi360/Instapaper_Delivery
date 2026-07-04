@@ -85,6 +85,65 @@ async function fetchJson(url) {
   return response.json();
 }
 
+function decodeHtmlEntities(value = "") {
+  return String(value)
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">");
+}
+
+function absolutizeUrl(url, baseUrl) {
+  try {
+    return new URL(url, baseUrl).toString();
+  } catch {
+    return "";
+  }
+}
+
+function readMeta(html, names) {
+  const tags = html.match(/<meta\b[^>]*>/gi) || [];
+  for (const name of names) {
+    for (const tag of tags) {
+      const keyPattern = new RegExp(`(?:property|name)=["']${name}["']`, "i");
+      if (!keyPattern.test(tag)) {
+        continue;
+      }
+      const content = tag.match(/\bcontent=["']([^"']+)["']/i);
+      if (content?.[1]) {
+        return decodeHtmlEntities(content[1]);
+      }
+    }
+  }
+  return "";
+}
+
+async function fetchArticleMetadata(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "user-agent": "Mozilla/5.0",
+      },
+      redirect: "follow",
+    });
+    if (!response.ok) {
+      return {};
+    }
+    const html = await response.text();
+    const image = readMeta(html, ["og:image", "twitter:image"]);
+    const title = readMeta(html, ["og:title", "twitter:title"]);
+    const description = readMeta(html, ["og:description", "twitter:description", "description"]);
+    return {
+      title,
+      description,
+      image: image ? absolutizeUrl(image, response.url || url) : "",
+    };
+  } catch {
+    return {};
+  }
+}
+
 async function buildXItem(bookmark) {
   const tweet = getTweetParts(bookmark.url);
   if (!tweet) {
@@ -129,19 +188,26 @@ async function buildXItem(bookmark) {
   };
 }
 
-function buildSummaryItem(bookmark) {
+async function buildSummaryItem(bookmark) {
+  const metadata = await fetchArticleMetadata(bookmark.url);
+  const title = cleanTitle(bookmark);
+  const resolvedTitle = title === bookmark.url && metadata.title ? metadata.title : title;
+  const summary = bookmark.description?.trim()
+    || metadata.description
+    || "Summary unavailable from the saved metadata. Use the linked headline to open the full source.";
+
   return {
     kind: "summary",
-    title: cleanTitle(bookmark),
-    headline: makeHeadline(cleanTitle(bookmark), "Saved article"),
+    title: resolvedTitle,
+    headline: makeHeadline(resolvedTitle, "Saved article"),
     url: bookmark.url,
-    summary: bookmark.description?.trim()
-      || "Summary unavailable from the saved metadata. Use the linked headline to open the full source.",
+    summary,
+    images: metadata.image ? [{ url: metadata.image, alt: resolvedTitle }] : [],
   };
 }
 
 async function buildSnap(bookmark) {
-  const item = isXUrl(bookmark.url) ? await buildXItem(bookmark) : buildSummaryItem(bookmark);
+  const item = isXUrl(bookmark.url) ? await buildXItem(bookmark) : await buildSummaryItem(bookmark);
   return {
     subject: `Instapaper Delivery: ${item.headline || item.title}`,
     headline: item.headline || item.title,

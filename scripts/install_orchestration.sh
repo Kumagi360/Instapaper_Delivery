@@ -32,7 +32,7 @@ env_path="$config_root/instapaper-delivery.env"
 if [[ ! -f "$env_path" ]]; then
   umask 077
   cat > "$env_path" <<'ENV'
-RESEND_FROM=Codex Digest <onboarding@resend.dev>
+RESEND_FROM=KnlGPT <onboarding@resend.dev>
 RESEND_TO=kunalinks@gmail.com
 INSTAPAPER_SNAP_FOLDER=Snap Reads
 # Optional: enable archive/delete buttons in delivery emails.

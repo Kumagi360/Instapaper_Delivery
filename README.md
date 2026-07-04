@@ -130,7 +130,7 @@ Manual dummy or one-off send:
 
 ```bash
 env \
-  RESEND_FROM='Codex Digest <onboarding@resend.dev>' \
+  RESEND_FROM='KnlGPT <onboarding@resend.dev>' \
   RESEND_TO='you@example.com' \
   ./scripts/run_with_delivery_credentials.sh node ./src/send_daily_snap_read.mjs
 ```

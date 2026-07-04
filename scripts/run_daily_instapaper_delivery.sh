@@ -30,10 +30,12 @@ Hard requirements:
 - Use a short, content-specific email headline under 8 words and link that headline to the saved article or post.
 - Do not show a visible subheading under the email headline and do not include an 'Open original' button.
 - Do not put a separate headline/title inside content cards.
-- For X posts that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled 'X thread', include the visible original content, and emphasize the direct X post link and any embedded links.
-- For X one-offs, render one callout card labeled 'X post', include the visible original content, and emphasize any embedded links.
-- Put any available X images inside the X callout card, but do not describe or over-weight images unless the image contains essential readable content.
-- For direct non-X articles or video links, render one card with a clearly labeled 'Summary' section and an emphasized source link.
+- Do not include standalone action links such as 'Open X thread', 'Open X post', 'Read ...', or 'Read the saved article'. The linked email headline is the primary route to the saved item.
+- For X posts that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled 'X thread' containing only the visible original post content.
+- For X one-offs, render one callout card labeled 'X post' containing only the visible original post content.
+- Keep URLs that appear in the original X post text inline and visibly emphasized inside the callout.
+- Put any available X images inside the X callout itself, not after it, and do not describe or over-weight images unless the image contains essential readable content.
+- For direct non-X articles or video links, render one card with a clearly labeled 'Article Summary' section. Do not add a standalone source link below the summary; use the linked email headline.
 - Use '.transient-snap-read.json' only as a short-lived payload for 'src/resend_snap_read.mjs'.
 - Send through Resend using 'RESEND_FROM', 'RESEND_TO', and the available Resend API key source.
 - On this Linux/Raspbian host, the Instapaper credential is expected from the systemd credential mounted at '\$CREDENTIALS_DIRECTORY/instapaper_delivery_credentials'.

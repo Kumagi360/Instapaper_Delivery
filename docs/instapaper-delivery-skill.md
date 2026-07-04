@@ -61,10 +61,13 @@ Content rules:
 - Do not include an `Open original` button. Link the email's main headline to the saved article or post instead.
 - The email header should be a short, content-specific headline under 8 words. Do not show a visible subheading under it.
 - Do not put a separate headline/title inside content cards.
-- For X/Twitter items that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled `X thread`, include the visible original content, and emphasize the direct X post link and any embedded links.
-- For X/Twitter one-off posts, render one callout card labeled `X post`, include the visible original content, and emphasize any embedded links.
-- Include X images inside the X callout card when available, but do not over-index on them or write image descriptions unless the image itself contains essential readable content.
-- For direct non-X articles or video links, render one card with a clearly labeled `Summary` section and an emphasized source link.
+- Do not include standalone action links such as `Open X thread`, `Open X post`, `Read ...`, or `Read the saved article`. The linked email headline is the primary route to the saved item.
+- For X/Twitter items that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled `X thread` containing only the visible original post content.
+- For X/Twitter one-off posts, render one callout card labeled `X post` containing only the visible original post content.
+- Keep URLs that appear in the original X post text inline and visibly emphasized inside the callout.
+- Include X images inside the X callout itself when available, not after the callout. Do not over-index on images or write image descriptions unless the image itself contains essential readable content.
+- For direct non-X articles or video links, render one card with a clearly labeled `Article Summary` section. Do not add a standalone source link below the summary; use the linked email headline.
+- If an article image is available, place it inside the summary callout itself, not after it.
 - Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.
 - Do not mention other skills or internal implementation sources in the delivered email.
 

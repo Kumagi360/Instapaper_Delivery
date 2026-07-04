@@ -59,13 +59,6 @@ function makeHeadline(text = "", fallback = "Saved article") {
   return words.join(" ") || fallback;
 }
 
-function extractLinks(text = "") {
-  return Array.from(String(text).matchAll(/https?:\/\/[^\s<>"']+/g), (match) => ({
-    url: match[0],
-    label: "Embedded link",
-  }));
-}
-
 async function listSnapReads() {
   const { stdout } = await execFileAsync(process.execPath, [
     path.join(PROJECT_ROOT, "src", "instapaper.mjs"),
@@ -108,10 +101,6 @@ async function buildXItem(bookmark) {
   const text = payload?.text || cleanTitle(bookmark);
   const title = stripThreadMarker(firstNonEmptyLine(text)) || cleanTitle(bookmark);
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
-  const articleEmbed = payload?.article?.title
-    ? [{ url: bookmark.url, label: payload.article.title }]
-    : [];
-  const embeds = [...articleEmbed, ...extractLinks(text)];
   const images = (payload?.media_extended || [])
     .filter((media) => media.type === "image" && media.url)
     .map((media) => ({ url: media.url, alt: media.altText || title }));
@@ -125,7 +114,6 @@ async function buildXItem(bookmark) {
       label: "X thread",
       summary: "",
       visibleText: text,
-      embeds: embeds.length ? embeds : [{ url: bookmark.url, label: "Open X thread" }],
       images,
     };
   }
@@ -137,7 +125,6 @@ async function buildXItem(bookmark) {
     url: bookmark.url,
     summary: "",
     visibleText: text,
-    embeds: embeds.length ? embeds : [{ url: bookmark.url, label: "Open X post" }],
     images,
   };
 }
@@ -149,8 +136,7 @@ function buildSummaryItem(bookmark) {
     headline: makeHeadline(cleanTitle(bookmark), "Saved article"),
     url: bookmark.url,
     summary: bookmark.description?.trim()
-      || "Summary unavailable from the saved metadata. Open the emphasized saved link for the full source.",
-    embeds: [{ url: bookmark.url, label: "Open saved article" }],
+      || "Summary unavailable from the saved metadata. Use the linked headline to open the full source.",
   };
 }
 

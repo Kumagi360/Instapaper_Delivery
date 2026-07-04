@@ -54,41 +54,27 @@ function renderLinkedText(text = "") {
   return parts.join("").replaceAll("\n", "<br>");
 }
 
-function renderEmphasizedLinks(links = [], fallbackUrl = "") {
-  const allLinks = links.length ? links : [{ url: fallbackUrl, label: "Open saved link" }];
-  return allLinks
-    .filter((link) => link.url)
-    .map((link) => `
-      <div style="margin-top:12px;">
-        <a href="${escapeHtml(link.url)}" style="display:inline-block;color:#0f5b4f;font-size:15px;font-weight:900;text-decoration-color:#7ea99f;text-underline-offset:3px;">
-          ${escapeHtml(link.label || link.url)}
-        </a>
+function renderImages(images = [], fallbackAlt = "") {
+  return images
+    .filter((image) => image.url)
+    .map((image) => `
+      <div style="margin:14px 0 0 0;">
+        <img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.alt || fallbackAlt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border-radius:12px;border:1px solid #ddd4c6;">
       </div>
     `)
     .join("");
 }
 
-function renderImage(url, alt = "") {
-  return `
-    <tr>
-      <td style="padding:0 0 18px 0;">
-        <img src="${escapeHtml(url)}" alt="${escapeHtml(alt)}" width="100%" style="display:block;width:100%;max-width:100%;height:auto;border-radius:14px;border:1px solid #ddd4c6;">
-      </td>
-    </tr>
-  `;
-}
-
 function renderXItem(item, { label }) {
-  const imageRows = (item.images || []).map((image) => renderImage(image.url, image.alt || item.title)).join("");
-
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
       <tr>
         <td style="padding:18px 18px 16px 18px;">
           <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">${escapeHtml(label)}</div>
-          <div style="background:#f8f2e8;border-left:4px solid #0f5b4f;border-radius:12px;padding:14px 15px;font-size:15px;line-height:1.66;color:#3b3935;margin:0 0 14px 0;">${renderLinkedText(item.visibleText || item.summary || "")}</div>
-          ${renderEmphasizedLinks(item.embeds, item.url)}
-          ${imageRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0 0;">${imageRows}</table>` : ""}
+          <div style="background:#f8f2e8;border-left:4px solid #0f5b4f;border-radius:12px;padding:14px 15px;font-size:15px;line-height:1.66;color:#3b3935;margin:0;">
+            ${renderLinkedText(item.visibleText || "")}
+            ${renderImages(item.images, item.title)}
+          </div>
         </td>
       </tr>
     </table>
@@ -100,9 +86,11 @@ function renderSummary(item) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
       <tr>
         <td style="padding:20px 20px 18px 20px;">
-          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Summary</div>
-          <div style="font-size:16px;line-height:1.72;color:#2a2824;">${paragraphize(item.summary)}</div>
-          ${renderEmphasizedLinks(item.embeds, item.url)}
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Article Summary</div>
+          <div style="background:#f8f2e8;border-left:4px solid #0f5b4f;border-radius:12px;padding:14px 15px;font-size:16px;line-height:1.72;color:#2a2824;margin:0;">
+            ${paragraphize(item.summary)}
+            ${renderImages(item.images, item.title)}
+          </div>
         </td>
       </tr>
     </table>
@@ -187,12 +175,6 @@ function renderPlainText(snap) {
     if (item.visibleText) {
       lines.push(normalizeText(item.visibleText), "");
     }
-    if (item.embeds?.length) {
-      lines.push("Links:");
-      for (const link of item.embeds) {
-        lines.push(link.label ? `${link.label}: ${link.url}` : link.url);
-      }
-    }
     if (item.images?.length) {
       lines.push("Images:");
       for (const image of item.images) {
@@ -200,7 +182,7 @@ function renderPlainText(snap) {
       }
     }
   } else {
-    lines.push("Summary", normalizeText(item.summary), "", item.url);
+    lines.push("Article Summary", normalizeText(item.summary), "", item.url);
   }
 
   return lines.join("\n");

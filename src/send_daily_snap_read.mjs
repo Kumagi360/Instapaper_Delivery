@@ -25,6 +25,15 @@ function isXUrl(url) {
   }
 }
 
+function isLinkedInUrl(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "linkedin.com" || host.endsWith(".linkedin.com");
+  } catch {
+    return false;
+  }
+}
+
 function getTweetParts(url) {
   try {
     const parsed = new URL(url);
@@ -54,12 +63,28 @@ function stripThreadMarker(text = "") {
   return text.replace(/\s*\(\s*1\s*\/\s*(?:n|\d+)\s*\)\s*$/i, "").trim();
 }
 
-function makeHeadline(text = "", fallback = "Saved article") {
-  const words = String(text || fallback)
+function cleanHeadlineSource(text = "") {
+  return decodeHtmlEntities(text)
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/\s*\(\s*1\s*\/\s*(?:n|\d+)\s*\)\s*/gi, " ")
+    .replace(/[#@][\w-]+/g, " ")
+    .replace(/[|•·]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function makeHeadlineSummary({ title = "", description = "", text = "", fallback = "Saved item" } = {}) {
+  const source = cleanHeadlineSource(description || title || text || fallback);
+  const stopWords = new Set([
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how", "i", "in", "is", "it", "its",
+    "of", "on", "or", "our", "that", "the", "their", "this", "to", "we", "with", "you", "your",
+  ]);
+  const words = source
     .replace(/^https?:\/\/\S+$/i, fallback)
-    .replace(/[^\w\s'-]/g, " ")
+    .replace(/[^\w\s'%-]/g, " ")
     .split(/\s+/)
     .filter(Boolean)
+    .filter((word) => !stopWords.has(word.toLowerCase()))
     .slice(0, 7);
   return words.join(" ") || fallback;
 }
@@ -195,7 +220,14 @@ async function buildXItem(bookmark) {
   }
 
   const text = payload?.text || cleanTitle(bookmark);
-  const title = stripThreadMarker(firstNonEmptyLine(text)) || cleanTitle(bookmark);
+  const article = payload?.article || {};
+  const title = stripThreadMarker(firstNonEmptyLine(article.title || text)) || cleanTitle(bookmark);
+  const headline = makeHeadlineSummary({
+    title: article.title || title,
+    description: article.preview_text || "",
+    text,
+    fallback: "Saved X post",
+  });
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
   const images = (payload?.media_extended || [])
     .map((media) => ({
@@ -208,7 +240,7 @@ async function buildXItem(bookmark) {
     return {
       kind: "x-thread",
       title,
-      headline: makeHeadline(title, "Saved X thread"),
+      headline,
       url: bookmark.url,
       bookmarkId: String(bookmark.bookmark_id || ""),
       actions: buildActionUrls(bookmark),
@@ -222,7 +254,7 @@ async function buildXItem(bookmark) {
   return {
     kind: "x-post",
     title,
-    headline: makeHeadline(title, "Saved X post"),
+    headline,
     url: bookmark.url,
     bookmarkId: String(bookmark.bookmark_id || ""),
     actions: buildActionUrls(bookmark),
@@ -230,6 +262,30 @@ async function buildXItem(bookmark) {
     summary: "",
     visibleText: DELIVERY_FORMAT === "video" ? "" : text,
     images,
+  };
+}
+
+async function buildLinkedInItem(bookmark) {
+  const metadata = await fetchArticleMetadata(bookmark.url);
+  const visibleText = decodeHtmlEntities(bookmark.title?.trim() || metadata.description || metadata.title || bookmark.url);
+  const title = decodeHtmlEntities(metadata.title || cleanTitle(bookmark));
+
+  return {
+    kind: "x-post",
+    title,
+    headline: makeHeadlineSummary({
+      title,
+      description: metadata.description,
+      text: visibleText,
+      fallback: "Saved LinkedIn post",
+    }),
+    url: bookmark.url,
+    bookmarkId: String(bookmark.bookmark_id || ""),
+    actions: buildActionUrls(bookmark),
+    label: DELIVERY_CARD_LABEL || "LinkedIn post",
+    summary: "",
+    visibleText,
+    images: metadata.image ? [{ url: metadata.image, alt: title }] : [],
   };
 }
 
@@ -246,7 +302,11 @@ async function buildSummaryItem(bookmark) {
   return {
     kind: "summary",
     title: resolvedTitle,
-    headline: makeHeadline(resolvedTitle, "Saved article"),
+    headline: makeHeadlineSummary({
+      title: resolvedTitle,
+      description: metadata.description || bookmark.description,
+      fallback: "Saved article",
+    }),
     url: bookmark.url,
     bookmarkId: String(bookmark.bookmark_id || ""),
     actions: buildActionUrls(bookmark),
@@ -257,7 +317,11 @@ async function buildSummaryItem(bookmark) {
 }
 
 async function buildSnap(bookmark) {
-  const item = isXUrl(bookmark.url) ? await buildXItem(bookmark) : await buildSummaryItem(bookmark);
+  const item = isXUrl(bookmark.url)
+    ? await buildXItem(bookmark)
+    : isLinkedInUrl(bookmark.url)
+      ? await buildLinkedInItem(bookmark)
+      : await buildSummaryItem(bookmark);
   return {
     subject: `Instapaper Delivery: ${item.headline || item.title}`,
     headline: item.headline || item.title,

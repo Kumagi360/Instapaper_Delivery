@@ -66,11 +66,13 @@ Content rules:
 
 - Do not include an `Open original` button. Link the email's main headline to the saved article or post instead.
 - When signed action URLs are available, include `archive` and `delete` buttons at the bottom of every delivery email, across X threads, X posts, and non-X articles. These buttons should act on the actual saved Instapaper bookmark, not merely the source URL.
-- The email header should be a short, content-specific headline under 8 words. Do not show a visible subheading under it.
+- The email header should be a short, hooky content-summary headline under 8 words. Do not copy the first line or title verbatim when the source is a post, thread, or article; compress what the saved item is about.
+- Treat Substack links as ordinary article links.
 - Do not put a separate headline/title inside content cards.
 - Do not include standalone action links such as `Open X thread`, `Open X post`, `Read ...`, or `Read the saved article`. The linked email headline is the primary route to the saved item.
 - For X/Twitter items that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled `X thread` containing only the visible original post content verbatim.
 - For X/Twitter one-off posts, render one callout card labeled `X post` containing only the visible original post content verbatim.
+- Treat LinkedIn posts like X/Twitter posts: render the visible original post text in a callout card rather than as an article summary.
 - Keep URLs that appear in the original X post text inline and visibly emphasized inside the callout.
 - Include X images inside the X callout itself when available, not after the callout. Do not over-index on images or write image descriptions unless the image itself contains essential readable content.
 - For direct non-X articles, video links, or any saved item that is not an X post/thread, render one card with a clearly labeled summary section. Use `Article Summary` for Snap Reads, `Actionable Summary` for Actionable deliveries, and `Rich Read Summary` for Rich Read deliveries. Do not use callout styling for the summary prose. Do not add a standalone source link below the summary; use the linked email headline.

@@ -68,6 +68,7 @@ Content rules:
 - Include X images inside the X callout itself when available, not after the callout. Do not over-index on images or write image descriptions unless the image itself contains essential readable content.
 - For direct non-X articles or video links, render one card with a clearly labeled `Article Summary` section. Do not add a standalone source link below the summary; use the linked email headline.
 - If an article image is available, place it inside the summary callout itself, not after it.
+- If public X metadata, article metadata, or media extraction is unavailable, still send a compact fallback email using the saved item title or URL, the linked email headline, and the best available visible text or summary. Do not add process notes about the metadata failure.
 - Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.
 - Do not mention other skills or internal implementation sources in the delivered email.
 

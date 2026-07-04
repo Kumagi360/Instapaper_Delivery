@@ -49,20 +49,21 @@ function stripThreadMarker(text = "") {
   return text.replace(/\s*\(\s*1\s*\/\s*(?:n|\d+)\s*\)\s*$/i, "").trim();
 }
 
-function summarizeVisibleThreadStarter({ text }) {
-  const body = stripThreadMarker(text);
-  const lower = body.toLowerCase();
+function makeHeadline(text = "", fallback = "Saved article") {
+  const words = String(text || fallback)
+    .replace(/^https?:\/\/\S+$/i, fallback)
+    .replace(/[^\w\s'-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 7);
+  return words.join(" ") || fallback;
+}
 
-  if (lower.includes("robot learning") && lower.includes("behavior cloning")) {
-    return [
-      "Kyle Vedder frames the current state of robot learning as still dominated by behavior cloning: humans demonstrate tasks, those demonstrations become training data, and the resulting policy imitates the demonstrated behavior.",
-      "The visible thread starter promises an argument about why real-world robot learning has converged on that supervised setup, why reinforcement learning is not yet the default for deployed robots, and what might change as systems move toward self-improvement.",
-    ].filter(Boolean).join(" ");
-  }
-
-  return body.length > 280
-    ? `${body.slice(0, 277)}...`
-    : body;
+function extractLinks(text = "") {
+  return Array.from(String(text).matchAll(/https?:\/\/[^\s<>"']+/g), (match) => ({
+    url: match[0],
+    label: "Embedded link",
+  }));
 }
 
 async function listSnapReads() {
@@ -107,6 +108,10 @@ async function buildXItem(bookmark) {
   const text = payload?.text || cleanTitle(bookmark);
   const title = stripThreadMarker(firstNonEmptyLine(text)) || cleanTitle(bookmark);
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
+  const articleEmbed = payload?.article?.title
+    ? [{ url: bookmark.url, label: payload.article.title }]
+    : [];
+  const embeds = [...articleEmbed, ...extractLinks(text)];
   const images = (payload?.media_extended || [])
     .filter((media) => media.type === "image" && media.url)
     .map((media) => ({ url: media.url, alt: media.altText || title }));
@@ -115,19 +120,25 @@ async function buildXItem(bookmark) {
     return {
       kind: "x-thread",
       title,
+      headline: makeHeadline(title, "Saved X thread"),
       url: bookmark.url,
-      label: "X thread starter",
-      summary: summarizeVisibleThreadStarter({ text }),
+      label: "X thread",
+      summary: "",
       visibleText: text,
+      embeds: embeds.length ? embeds : [{ url: bookmark.url, label: "Open X thread" }],
       images,
     };
   }
 
   return {
-    kind: "summary",
+    kind: "x-post",
     title,
+    headline: makeHeadline(title, "Saved X post"),
     url: bookmark.url,
-    summary: "This saved X post appears to be a short post or link-style item rather than a readable thread. Open the original to inspect the linked material and surrounding context.",
+    summary: "",
+    visibleText: text,
+    embeds: embeds.length ? embeds : [{ url: bookmark.url, label: "Open X post" }],
+    images,
   };
 }
 
@@ -135,17 +146,20 @@ function buildSummaryItem(bookmark) {
   return {
     kind: "summary",
     title: cleanTitle(bookmark),
+    headline: makeHeadline(cleanTitle(bookmark), "Saved article"),
     url: bookmark.url,
     summary: bookmark.description?.trim()
-      || "This saved item is a direct article or link. Open it for the full source; the Snap Read email keeps the handoff compact with the heading and source link.",
+      || "Summary unavailable from the saved metadata. Open the emphasized saved link for the full source.",
+    embeds: [{ url: bookmark.url, label: "Open saved article" }],
   };
 }
 
 async function buildSnap(bookmark) {
   const item = isXUrl(bookmark.url) ? await buildXItem(bookmark) : buildSummaryItem(bookmark);
   return {
-    subject: `Instapaper Delivery Snap Read: ${item.title}`,
-    preheader: "One saved Snap Reads item prepared for mobile reading.",
+    subject: `Instapaper Delivery: ${item.headline || item.title}`,
+    headline: item.headline || item.title,
+    preheader: "One saved Instapaper item prepared for mobile reading.",
     item,
   };
 }

@@ -27,10 +27,13 @@ Hard requirements:
 - Send exactly one snap read email.
 - Select the oldest item in the Instapaper '$snap_folder' folder.
 - Render the email using the tracked Instapaper Delivery rules.
-- For X posts that appear to be threads, use a compact synthesized summary card followed by a visible-post card that directly links to the X post.
-- Put any available X images inside the visible-post card, but do not describe or over-weight images unless the image contains essential readable content.
-- For X one-offs, include the complete visible post if it fits cleanly; if it is primarily a link post, provide a heading, one dense paragraph, and the link.
-- For direct non-X articles or links, provide a heading, one dense paragraph, and the link.
+- Use a short, content-specific email headline under 8 words and link that headline to the saved article or post.
+- Do not show a visible subheading under the email headline and do not include an 'Open original' button.
+- Do not put a separate headline/title inside content cards.
+- For X posts that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled 'X thread', include the visible original content, and emphasize the direct X post link and any embedded links.
+- For X one-offs, render one callout card labeled 'X post', include the visible original content, and emphasize any embedded links.
+- Put any available X images inside the X callout card, but do not describe or over-weight images unless the image contains essential readable content.
+- For direct non-X articles or video links, render one card with a clearly labeled 'Summary' section and an emphasized source link.
 - Use '.transient-snap-read.json' only as a short-lived payload for 'src/resend_snap_read.mjs'.
 - Send through Resend using 'RESEND_FROM', 'RESEND_TO', and the available Resend API key source.
 - On this Linux/Raspbian host, the Instapaper credential is expected from the systemd credential mounted at '\$CREDENTIALS_DIRECTORY/instapaper_delivery_credentials'.

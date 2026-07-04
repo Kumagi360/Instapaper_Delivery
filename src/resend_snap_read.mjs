@@ -38,6 +38,36 @@ function paragraphize(text) {
     .join("");
 }
 
+function renderLinkedText(text = "") {
+  const parts = [];
+  const pattern = /(https?:\/\/[^\s<>"']+)/g;
+  let lastIndex = 0;
+  for (const match of String(text).matchAll(pattern)) {
+    parts.push(escapeHtml(String(text).slice(lastIndex, match.index)));
+    const url = match[0];
+    parts.push(
+      `<a href="${escapeHtml(url)}" style="color:#0f5b4f;font-weight:800;text-decoration-color:#7ea99f;text-underline-offset:3px;">${escapeHtml(url)}</a>`,
+    );
+    lastIndex = match.index + url.length;
+  }
+  parts.push(escapeHtml(String(text).slice(lastIndex)));
+  return parts.join("").replaceAll("\n", "<br>");
+}
+
+function renderEmphasizedLinks(links = [], fallbackUrl = "") {
+  const allLinks = links.length ? links : [{ url: fallbackUrl, label: "Open saved link" }];
+  return allLinks
+    .filter((link) => link.url)
+    .map((link) => `
+      <div style="margin-top:12px;">
+        <a href="${escapeHtml(link.url)}" style="display:inline-block;color:#0f5b4f;font-size:15px;font-weight:900;text-decoration-color:#7ea99f;text-underline-offset:3px;">
+          ${escapeHtml(link.label || link.url)}
+        </a>
+      </div>
+    `)
+    .join("");
+}
+
 function renderImage(url, alt = "") {
   return `
     <tr>
@@ -48,33 +78,20 @@ function renderImage(url, alt = "") {
   `;
 }
 
-function renderThread(item) {
+function renderXItem(item, { label }) {
   const imageRows = (item.images || []).map((image) => renderImage(image.url, image.alt || item.title)).join("");
-  const visibleText = item.visibleText
-    ? `
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;margin-top:16px;">
-        <tr>
-          <td style="padding:18px 18px 16px 18px;">
-            <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Visible post</div>
-            <div style="font-size:15px;line-height:1.66;color:#3b3935;margin:0 0 12px 0;">${escapeHtml(item.visibleText).replaceAll("\n", "<br>")}</div>
-            ${imageRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:2px 0 14px 0;">${imageRows}</table>` : ""}
-            <a href="${escapeHtml(item.url)}" style="color:#0f5b4f;font-size:14px;font-weight:800;text-decoration-color:#7ea99f;text-underline-offset:3px;">Open this post</a>
-          </td>
-        </tr>
-      </table>
-    `
-    : "";
 
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d7e3dc;border-left:4px solid #0f5b4f;border-radius:16px;background:#fffdfa;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
       <tr>
-        <td style="padding:20px 20px 18px 20px;">
-          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#0f5b4f;margin-bottom:10px;">${escapeHtml(item.label || "X thread starter")}</div>
-          <div style="font-size:16px;line-height:1.72;color:#2a2824;">${paragraphize(item.summary)}</div>
+        <td style="padding:18px 18px 16px 18px;">
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">${escapeHtml(label)}</div>
+          <div style="background:#f8f2e8;border-left:4px solid #0f5b4f;border-radius:12px;padding:14px 15px;font-size:15px;line-height:1.66;color:#3b3935;margin:0 0 14px 0;">${renderLinkedText(item.visibleText || item.summary || "")}</div>
+          ${renderEmphasizedLinks(item.embeds, item.url)}
+          ${imageRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0 0;">${imageRows}</table>` : ""}
         </td>
       </tr>
     </table>
-    ${visibleText}
   `;
 }
 
@@ -83,10 +100,9 @@ function renderSummary(item) {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
       <tr>
         <td style="padding:20px 20px 18px 20px;">
-          <div style="font-family:Georgia,'Times New Roman',serif;font-size:28px;line-height:1.16;font-weight:700;color:#1d1d1b;margin:0 0 12px 0;">
-            <a href="${escapeHtml(item.url)}" style="color:#1d1d1b;text-decoration-color:#7ea99f;text-decoration-thickness:1.5px;text-underline-offset:4px;">${escapeHtml(item.title)}</a>
-          </div>
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Summary</div>
           <div style="font-size:16px;line-height:1.72;color:#2a2824;">${paragraphize(item.summary)}</div>
+          ${renderEmphasizedLinks(item.embeds, item.url)}
         </td>
       </tr>
     </table>
@@ -96,7 +112,12 @@ function renderSummary(item) {
 function renderSnapHtml(snap) {
   const preheader = snap.preheader || "One saved Instapaper item, prepared for reading.";
   const item = snap.item;
-  const body = item.kind === "x-thread" ? renderThread(item) : renderSummary(item);
+  const headline = snap.headline || item.headline || item.title;
+  const body = item.kind === "x-thread"
+    ? renderXItem(item, { label: "X thread" })
+    : item.kind === "x-post"
+      ? renderXItem(item, { label: "X post" })
+      : renderSummary(item);
 
   return `<!doctype html>
 <html lang="en">
@@ -130,18 +151,14 @@ function renderSnapHtml(snap) {
                   <tr>
                     <td class="hero" style="padding:42px 46px 24px 46px;background:linear-gradient(180deg,#fffdf8 0%,#fbf6ee 100%);border-bottom:1px solid #ddd4c6;">
                       <div style="font-size:12px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#0f5b4f;margin-bottom:12px;">Instapaper Delivery</div>
-                      <div class="hero-title" style="font-family:Georgia,'Times New Roman',serif;font-size:46px;line-height:1.04;font-weight:700;letter-spacing:0;color:#1d1d1b;">${escapeHtml(item.title)}</div>
-                      <div style="font-size:14px;line-height:1.5;color:#70695d;margin-top:14px;">${escapeHtml(preheader)}</div>
+                      <div class="hero-title" style="font-family:Georgia,'Times New Roman',serif;font-size:46px;line-height:1.04;font-weight:700;letter-spacing:0;color:#1d1d1b;">
+                        <a href="${escapeHtml(item.url)}" style="color:#1d1d1b;text-decoration-color:#7ea99f;text-decoration-thickness:1.5px;text-underline-offset:5px;">${escapeHtml(headline)}</a>
+                      </div>
                     </td>
                   </tr>
                   <tr>
                     <td class="section-pad" style="padding:30px 46px 18px 46px;">
                       ${body}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="section-pad" style="padding:0 46px 34px 46px;">
-                      <a href="${escapeHtml(item.url)}" style="display:inline-block;background:#0f5b4f;color:#fffdf8;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px;padding:12px 16px;border-radius:999px;">Open original</a>
                     </td>
                   </tr>
                 </table>
@@ -165,10 +182,16 @@ function renderPlainText(snap) {
     "",
   ];
 
-  if (item.kind === "x-thread") {
-    lines.push(item.label || "X thread starter", "", normalizeText(item.summary), "");
+  if (item.kind === "x-thread" || item.kind === "x-post") {
+    lines.push(item.kind === "x-thread" ? "X thread" : "X post", "");
     if (item.visibleText) {
-      lines.push("Visible post", normalizeText(item.visibleText), item.url, "");
+      lines.push(normalizeText(item.visibleText), "");
+    }
+    if (item.embeds?.length) {
+      lines.push("Links:");
+      for (const link of item.embeds) {
+        lines.push(link.label ? `${link.label}: ${link.url}` : link.url);
+      }
     }
     if (item.images?.length) {
       lines.push("Images:");
@@ -177,7 +200,7 @@ function renderPlainText(snap) {
       }
     }
   } else {
-    lines.push(normalizeText(item.summary));
+    lines.push("Summary", normalizeText(item.summary), "", item.url);
   }
 
   return lines.join("\n");

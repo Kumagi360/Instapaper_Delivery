@@ -1,8 +1,8 @@
-# Instapaper Plugin
+# Instapaper Delivery
 
-A local Codex plugin and command-line utility for using Instapaper as a private read-later source.
+A local Codex skill and command-line utility for delivering Instapaper saved articles into Codex workflows.
 
-The goal is to make your saved articles available to Codex workflows without pasting credentials into chat or committing secrets to disk. The tracked repo contains the plugin, scripts, skill instructions, and install metadata. Account credentials live outside the repo, preferably as encrypted systemd credentials.
+The goal is to make your saved articles available to Codex workflows without pasting credentials into chat or committing secrets to disk. The tracked repo contains the skill, scripts, client code, and documentation. Account credentials live outside the repo, preferably as encrypted systemd credentials.
 
 ## What It Does
 
@@ -19,7 +19,7 @@ The goal is to make your saved articles available to Codex workflows without pas
 Instapaper Full API
         |
         v
-plugins/instapaper/scripts/instapaper.mjs
+src/instapaper.mjs
         |
         v
 Codex skill / local shell workflow
@@ -32,14 +32,12 @@ The Node client is dependency-free and signs OAuth 1.0a requests directly. The s
 
 ## Repository Layout
 
-- `plugins/instapaper/`: canonical tracked Codex plugin.
-- `plugins/instapaper/scripts/instapaper.mjs`: Instapaper Full API client.
-- `plugins/instapaper/scripts/setup_instapaper_credential.sh`: interactive credential setup.
-- `plugins/instapaper/scripts/run_with_instapaper_credential.sh`: runs commands with the encrypted credential mounted at runtime.
-- `plugins/instapaper/skills/instapaper/SKILL.md`: Codex skill instructions.
-- `scripts/install_plugin.sh`: symlinks the tracked plugin into `~/plugins/instapaper`.
-- `.agents/plugins/marketplace.json`: portable marketplace metadata for this repo.
-- `docs/instapaper-skill.md`: exported reference copy of the skill instructions.
+- `skills/instapaper-delivery/`: canonical tracked Codex skill.
+- `src/instapaper.mjs`: Instapaper Full API client.
+- `scripts/setup_systemd_instapaper_credential.sh`: interactive credential setup.
+- `scripts/run_with_instapaper_credential.sh`: runs commands with the encrypted credential mounted at runtime.
+- `scripts/install_skill.sh`: symlinks the tracked skill into `~/.codex/skills/instapaper-delivery`.
+- `docs/instapaper-delivery-skill.md`: exported reference copy of the skill instructions.
 
 ## Instapaper API Prerequisite
 
@@ -58,33 +56,32 @@ The Simple API can save URLs with basic authentication, but it cannot list or ma
 
 ## Setup
 
-Install the tracked plugin into the local Codex plugin directory:
+Install the tracked skill into the local Codex skill directory:
 
 ```bash
-./scripts/install_plugin.sh
+./scripts/install_skill.sh
 ```
 
 The script symlinks:
 
 ```text
-plugins/instapaper -> ~/plugins/instapaper
+skills/instapaper-delivery -> ~/.codex/skills/instapaper-delivery
 ```
 
-If a non-symlink plugin already exists at that target, it is backed up first.
+If a non-symlink skill already exists at that target, it is backed up first.
 
 ## Secret Storage
 
 Preferred Linux storage:
 
 ```text
-/etc/credstore.encrypted/instapaper_credentials
+/etc/credstore.encrypted/instapaper_delivery_credentials
 ```
 
 Create it with:
 
 ```bash
-cd plugins/instapaper
-./scripts/setup_instapaper_credential.sh
+./scripts/setup_systemd_instapaper_credential.sh
 ```
 
 The setup script prompts for:
@@ -99,7 +96,7 @@ It stores only the resulting OAuth credential bundle, encrypted by systemd. Do n
 The client reads credentials in this order:
 
 1. `INSTAPAPER_CREDENTIALS_JSON`
-2. systemd credential named `instapaper_credentials`, when `CREDENTIALS_DIRECTORY` is present
+2. systemd credential named `instapaper_delivery_credentials`, when `CREDENTIALS_DIRECTORY` is present
 3. lower-assurance fallback file: `${XDG_CONFIG_HOME:-~/.config}/instapaper/credentials.json`
 
 ## Usage
@@ -107,24 +104,22 @@ The client reads credentials in this order:
 Run commands through the credential wrapper:
 
 ```bash
-cd plugins/instapaper
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs verify
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs list --folder unread --limit 25
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs folders
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs highlights <bookmark_id>
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs add https://example.com/article --title "Article title"
-./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs archive <bookmark_id>
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs verify
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs list --folder unread --limit 25
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs folders
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs highlights <bookmark_id>
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs add https://example.com/article --title "Article title"
+./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs archive <bookmark_id>
 ```
 
 Use `--json` for machine-readable output where supported.
 
 ## Other Machines
 
-This plugin is not automatically available to Codex on other machines. To use it elsewhere:
+This skill is not automatically available to Codex on other machines. To use it elsewhere:
 
 1. Clone this repo.
-2. Run `./scripts/install_plugin.sh`.
-3. Add or install the repo marketplace metadata if needed by that Codex surface.
-4. Run `plugins/instapaper/scripts/setup_instapaper_credential.sh` on that machine.
+2. Run `./scripts/install_skill.sh`.
+3. Run `./scripts/setup_systemd_instapaper_credential.sh` on that machine.
 
 Credentials are intentionally machine-local. The repo should sync code and instructions, not account secrets.

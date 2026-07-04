@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-credential_name="instapaper_credentials"
+credential_name="instapaper_delivery_credentials"
 credential_dir="/etc/credstore.encrypted"
 credential_path="$credential_dir/$credential_name"
 
@@ -49,7 +49,7 @@ INSTAPAPER_CONSUMER_KEY="$consumer_key" \
 INSTAPAPER_CONSUMER_SECRET="$consumer_secret" \
 INSTAPAPER_USERNAME="$username" \
 INSTAPAPER_PASSWORD="$password" \
-node ./scripts/instapaper.mjs xauth > "$tmp_plain"
+node ./src/instapaper.mjs xauth > "$tmp_plain"
 
 chmod 600 "$tmp_plain"
 sudo install -d -m 0755 "$credential_dir"
@@ -65,4 +65,4 @@ echo "Stored encrypted Instapaper credential:"
 echo "- $credential_path"
 echo
 echo "Test it with:"
-echo "./scripts/run_with_instapaper_credential.sh node ./scripts/instapaper.mjs verify"
+echo "./scripts/run_with_instapaper_credential.sh node ./src/instapaper.mjs verify"

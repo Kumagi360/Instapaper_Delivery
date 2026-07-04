@@ -5,10 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 const API_ROOT = "https://www.instapaper.com";
-const SYSTEMD_CREDENTIAL_NAME = "instapaper_credentials";
+const SYSTEMD_CREDENTIAL_NAME = "instapaper_delivery_credentials";
 const LINUX_KEY_PATH = path.join(
   process.env.XDG_CONFIG_HOME || path.join(os.homedir(), ".config"),
-  "instapaper",
+  "instapaper-delivery",
   "credentials.json",
 );
 
@@ -173,7 +173,7 @@ async function loadCredentials() {
     }
   }
 
-  throw new Error("Missing Instapaper credentials. Run ./scripts/setup_instapaper_credential.sh first.");
+  throw new Error("Missing Instapaper credentials. Run ./scripts/setup_systemd_instapaper_credential.sh first.");
 }
 
 async function xauth() {

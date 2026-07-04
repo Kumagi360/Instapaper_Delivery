@@ -13,6 +13,8 @@ install -m 0644 "$repo_root/systemd/instapaper-delivery-snap-read.service" \
   "$runtime_root/systemd/instapaper-delivery-snap-read.service"
 install -m 0644 "$repo_root/systemd/instapaper-delivery-snap-read.timer" \
   "$runtime_root/systemd/instapaper-delivery-snap-read.timer"
+install -m 0644 "$repo_root/systemd/instapaper-delivery-action.service" \
+  "$runtime_root/systemd/instapaper-delivery-action.service"
 
 env_path="$config_root/instapaper-delivery.env"
 if [[ ! -f "$env_path" ]]; then
@@ -21,6 +23,11 @@ if [[ ! -f "$env_path" ]]; then
 RESEND_FROM=Codex Digest <onboarding@resend.dev>
 RESEND_TO=kunalinks@gmail.com
 INSTAPAPER_SNAP_FOLDER=Snap Reads
+# Optional: enable archive/delete buttons in delivery emails.
+# The action server must be reachable from the email-reading device.
+# INSTAPAPER_ACTION_BASE_URL=http://rpi-4b.local:8765
+# INSTAPAPER_ACTION_SECRET=replace-with-a-long-random-secret
+# INSTAPAPER_ACTION_TOKEN_TTL_DAYS=14
 ENV
 fi
 
@@ -28,10 +35,13 @@ echo "Installed Instapaper Delivery orchestration files:"
 echo "- $runtime_root/run_daily_instapaper_delivery.sh"
 echo "- $runtime_root/systemd/instapaper-delivery-snap-read.service"
 echo "- $runtime_root/systemd/instapaper-delivery-snap-read.timer"
+echo "- $runtime_root/systemd/instapaper-delivery-action.service"
 echo "- $env_path"
 echo
 echo "To install the systemd units:"
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-snap-read.service /etc/systemd/system/instapaper-delivery-snap-read.service"
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-snap-read.timer /etc/systemd/system/instapaper-delivery-snap-read.timer"
+echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-action.service /etc/systemd/system/instapaper-delivery-action.service"
 echo "sudo systemctl daemon-reload"
 echo "sudo systemctl enable --now instapaper-delivery-snap-read.timer"
+echo "sudo systemctl enable --now instapaper-delivery-action.service"

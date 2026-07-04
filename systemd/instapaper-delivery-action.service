@@ -1,0 +1,18 @@
+[Unit]
+Description=Instapaper Delivery archive/delete action server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=kunalgupta
+WorkingDirectory=/home/kunalgupta/Desktop/knlgpt/Instapaper_Delivery
+Environment=CODEX_HOME=/home/kunalgupta/.codex
+EnvironmentFile=/home/kunalgupta/.config/knlgpt-orchestration/instapaper-delivery.env
+LoadCredentialEncrypted=instapaper_delivery_credentials
+ExecStart=/usr/bin/node /home/kunalgupta/Desktop/knlgpt/Instapaper_Delivery/src/instapaper_action_server.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -1,8 +1,8 @@
 [Unit]
-Description=Run Instapaper Delivery snap read every morning
+Description=Run Instapaper Delivery snap read every evening
 
 [Timer]
-OnCalendar=*-*-* 06:30:00
+OnCalendar=*-*-* 22:30:00
 Persistent=true
 RandomizedDelaySec=0
 Unit=instapaper-delivery-snap-read.service

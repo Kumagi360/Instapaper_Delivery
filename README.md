@@ -13,6 +13,7 @@ The goal is to make your saved articles available to Codex workflows without pas
 - Archives, unarchives, stars, unstars, or deletes specific bookmarks.
 - Stores OAuth credentials through encrypted systemd credentials on Linux.
 - Sends a daily Snap Reads email through the existing Resend credential.
+- Optionally serves signed archive/delete action links for delivery email buttons.
 
 ## Architecture
 
@@ -44,7 +45,8 @@ The Node client is dependency-free and signs OAuth 1.0a requests directly. The s
 - `scripts/install_orchestration.sh`: installs the local runtime launcher, systemd templates, and environment file.
 - `src/resend_snap_read.mjs`: renders and sends a prepared Snap Read payload.
 - `src/send_daily_snap_read.mjs`: selects the oldest Snap Reads item and sends it.
-- `systemd/`: service and timer templates for the 6:30 AM Knlgpt-orchestrated daily run.
+- `src/instapaper_action_server.mjs`: validates signed delivery action links and archives/deletes bookmarks through the Instapaper API.
+- `systemd/`: service and timer templates for the 10:30 PM Knlgpt-orchestrated daily run.
 - `docs/instapaper-delivery-skill.md`: exported reference copy of the skill instructions.
 
 ## Instapaper API Prerequisite
@@ -144,12 +146,24 @@ systemd/instapaper-delivery-snap-read.service
 systemd/instapaper-delivery-snap-read.timer
 ```
 
-The timer is set for `06:30:00` local time. The service loads both encrypted systemd credentials:
+The timer is set for `22:30:00` local time. The service loads both encrypted systemd credentials:
 
 ```text
 instapaper_delivery_credentials
 resend_api_key
 ```
+
+### Delivery Action Buttons
+
+Archive/delete buttons require the action server to be reachable from the device where you read email. Configure the local environment file with:
+
+```text
+INSTAPAPER_ACTION_BASE_URL=http://rpi-4b.local:8765
+INSTAPAPER_ACTION_SECRET=<long random local secret>
+INSTAPAPER_ACTION_TOKEN_TTL_DAYS=14
+```
+
+The daily sender signs each button URL for the specific `bookmark_id`. The action server verifies the signature and expiry before calling the Instapaper API.
 
 Install the local orchestration files:
 

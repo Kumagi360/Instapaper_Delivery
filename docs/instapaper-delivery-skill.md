@@ -55,10 +55,12 @@ Use Snap Read delivery when the user asks for a saved item from the `Snap Reads`
 - Use `src/send_daily_snap_read.mjs` for unattended daily sends.
 - Do not ask the user to paste Resend or Instapaper credentials into chat.
 - For scheduled delivery, use the Knlgpt orchestration launcher at `scripts/run_daily_instapaper_delivery.sh`, installed to `~/.local/share/instapaper-delivery/run_daily_instapaper_delivery.sh`.
+- Every Instapaper delivery email must include bottom `archive` and `delete` buttons when `INSTAPAPER_ACTION_BASE_URL` and `INSTAPAPER_ACTION_SECRET` are configured. These buttons must use expiring signed URLs generated for the specific `bookmarkId`; never emit unsigned archive/delete links.
 
 Content rules:
 
 - Do not include an `Open original` button. Link the email's main headline to the saved article or post instead.
+- When signed action URLs are available, include `archive` and `delete` buttons at the bottom of every delivery email, across X threads, X posts, and non-X articles. These buttons should act on the actual saved Instapaper bookmark, not merely the source URL.
 - The email header should be a short, content-specific headline under 8 words. Do not show a visible subheading under it.
 - Do not put a separate headline/title inside content cards.
 - Do not include standalone action links such as `Open X thread`, `Open X post`, `Read ...`, or `Read the saved article`. The linked email headline is the primary route to the saved item.
@@ -74,7 +76,7 @@ Content rules:
 
 Daily timing and orchestration:
 
-- The intended schedule is 6:30 AM local time with a systemd timer.
+- The intended schedule is 10:30 PM local time with a systemd timer.
 - The systemd service should invoke the Knlgpt orchestration launcher, not call the Node sender directly.
 - The launcher should run `codex exec` with this skill in daily automation mode, inheriting `CREDENTIALS_DIRECTORY`, `RESEND_FROM`, and `RESEND_TO`.
 - Service and timer templates live in `systemd/instapaper-delivery-snap-read.service` and `systemd/instapaper-delivery-snap-read.timer`.

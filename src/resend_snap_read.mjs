@@ -65,6 +65,40 @@ function renderImages(images = [], fallbackAlt = "") {
     .join("");
 }
 
+function buildActionUrl(item, action) {
+  return item.actions?.[`${action}Url`] || "";
+}
+
+function renderActionButtons(item) {
+  const archiveUrl = buildActionUrl(item, "archive");
+  const deleteUrl = buildActionUrl(item, "delete");
+
+  if (!archiveUrl && !deleteUrl) {
+    return "";
+  }
+
+  const button = (label, url, style) => url
+    ? `<a href="${escapeHtml(url)}" style="${style}">${escapeHtml(label)}</a>`
+    : "";
+
+  return `
+    <tr>
+      <td class="section-pad" style="padding:0 46px 34px 46px;">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-right:10px;">
+              ${button("archive", archiveUrl, "display:inline-block;background:#0f5b4f;color:#fffdf8;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px;padding:11px 15px;border-radius:999px;")}
+            </td>
+            <td>
+              ${button("delete", deleteUrl, "display:inline-block;background:#fffdf8;color:#8b2d20;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px;padding:10px 14px;border-radius:999px;border:1px solid #d8b5ad;")}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  `;
+}
+
 function renderXItem(item, { label }) {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
@@ -147,6 +181,7 @@ function renderSnapHtml(snap) {
                       ${body}
                     </td>
                   </tr>
+                  ${renderActionButtons(item)}
                 </table>
               </td>
             </tr>
@@ -181,6 +216,14 @@ function renderPlainText(snap) {
     }
   } else {
     lines.push("Article Summary", normalizeText(item.summary), "", item.url);
+  }
+
+  const archiveUrl = buildActionUrl(item, "archive");
+  const deleteUrl = buildActionUrl(item, "delete");
+  if (archiveUrl || deleteUrl) {
+    lines.push("", "Actions:");
+    if (archiveUrl) lines.push(`Archive: ${archiveUrl}`);
+    if (deleteUrl) lines.push(`Delete: ${deleteUrl}`);
   }
 
   return lines.join("\n");

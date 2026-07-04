@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import crypto from "node:crypto";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -57,6 +58,38 @@ function makeHeadline(text = "", fallback = "Saved article") {
     .filter(Boolean)
     .slice(0, 7);
   return words.join(" ") || fallback;
+}
+
+function buildActionUrls(bookmark) {
+  const baseUrl = process.env.INSTAPAPER_ACTION_BASE_URL;
+  const secret = process.env.INSTAPAPER_ACTION_SECRET;
+  if (!baseUrl || !secret || !bookmark.bookmark_id) {
+    return {};
+  }
+
+  try {
+    const ttlDays = Number.parseInt(process.env.INSTAPAPER_ACTION_TOKEN_TTL_DAYS || "14", 10);
+    const expires = Math.floor(Date.now() / 1000) + Math.max(ttlDays, 1) * 24 * 60 * 60;
+    const sign = (action) => crypto
+      .createHmac("sha256", secret)
+      .update(`${action}:${bookmark.bookmark_id}:${expires}`)
+      .digest("hex");
+
+    const archiveUrl = new URL("/instapaper/archive", baseUrl);
+    archiveUrl.searchParams.set("bookmark_id", bookmark.bookmark_id);
+    archiveUrl.searchParams.set("expires", expires.toString());
+    archiveUrl.searchParams.set("token", sign("archive"));
+    const deleteUrl = new URL("/instapaper/delete", baseUrl);
+    deleteUrl.searchParams.set("bookmark_id", bookmark.bookmark_id);
+    deleteUrl.searchParams.set("expires", expires.toString());
+    deleteUrl.searchParams.set("token", sign("delete"));
+    return {
+      archiveUrl: archiveUrl.toString(),
+      deleteUrl: deleteUrl.toString(),
+    };
+  } catch {
+    return {};
+  }
 }
 
 async function listSnapReads() {
@@ -170,6 +203,8 @@ async function buildXItem(bookmark) {
       title,
       headline: makeHeadline(title, "Saved X thread"),
       url: bookmark.url,
+      bookmarkId: String(bookmark.bookmark_id || ""),
+      actions: buildActionUrls(bookmark),
       label: "X thread",
       summary: "",
       visibleText: text,
@@ -182,6 +217,8 @@ async function buildXItem(bookmark) {
     title,
     headline: makeHeadline(title, "Saved X post"),
     url: bookmark.url,
+    bookmarkId: String(bookmark.bookmark_id || ""),
+    actions: buildActionUrls(bookmark),
     summary: "",
     visibleText: text,
     images,
@@ -201,6 +238,8 @@ async function buildSummaryItem(bookmark) {
     title: resolvedTitle,
     headline: makeHeadline(resolvedTitle, "Saved article"),
     url: bookmark.url,
+    bookmarkId: String(bookmark.bookmark_id || ""),
+    actions: buildActionUrls(bookmark),
     summary,
     images: metadata.image ? [{ url: metadata.image, alt: resolvedTitle }] : [],
   };

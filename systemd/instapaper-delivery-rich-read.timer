@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Instapaper Delivery rich read every Sunday morning
+
+[Timer]
+OnCalendar=Sun *-*-* 08:00:00
+Persistent=true
+RandomizedDelaySec=0
+Unit=instapaper-delivery-rich-read.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Instapaper Delivery actionable read every Saturday morning
+
+[Timer]
+OnCalendar=Sat *-*-* 08:00:00
+Persistent=true
+RandomizedDelaySec=0
+Unit=instapaper-delivery-actionable.service
+
+[Install]
+WantedBy=timers.target

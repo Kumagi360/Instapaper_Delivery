@@ -9,7 +9,9 @@ const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
-const SNAP_READ_FOLDER_ID = "5255437";
+const DELIVERY_FOLDER_ID = process.env.INSTAPAPER_DELIVERY_FOLDER_ID || "5255437";
+const DELIVERY_FOLDER_NAME = process.env.INSTAPAPER_DELIVERY_FOLDER_NAME || process.env.INSTAPAPER_SNAP_FOLDER || "Snap Reads";
+const DELIVERY_SUMMARY_LABEL = process.env.INSTAPAPER_DELIVERY_SUMMARY_LABEL || "Article Summary";
 const TRANSIENT_SNAP_PATH = path.join(PROJECT_ROOT, ".transient-snap-read.json");
 
 function isXUrl(url) {
@@ -92,12 +94,12 @@ function buildActionUrls(bookmark) {
   }
 }
 
-async function listSnapReads() {
+async function listDeliveryBookmarks() {
   const { stdout } = await execFileAsync(process.execPath, [
     path.join(PROJECT_ROOT, "src", "instapaper.mjs"),
     "list",
     "--folder",
-    SNAP_READ_FOLDER_ID,
+    DELIVERY_FOLDER_ID,
     "--limit",
     "500",
     "--json",
@@ -241,6 +243,7 @@ async function buildSummaryItem(bookmark) {
     bookmarkId: String(bookmark.bookmark_id || ""),
     actions: buildActionUrls(bookmark),
     summary,
+    summaryLabel: DELIVERY_SUMMARY_LABEL,
     images: metadata.image ? [{ url: metadata.image, alt: resolvedTitle }] : [],
   };
 }
@@ -250,15 +253,15 @@ async function buildSnap(bookmark) {
   return {
     subject: `Instapaper Delivery: ${item.headline || item.title}`,
     headline: item.headline || item.title,
-    preheader: "One saved Instapaper item prepared for mobile reading.",
+    preheader: `One saved Instapaper item from ${DELIVERY_FOLDER_NAME} prepared for mobile reading.`,
     item,
   };
 }
 
 async function main() {
-  const bookmarks = await listSnapReads();
+  const bookmarks = await listDeliveryBookmarks();
   if (bookmarks.length === 0) {
-    throw new Error("No Snap Reads bookmarks found.");
+    throw new Error(`No ${DELIVERY_FOLDER_NAME} bookmarks found.`);
   }
 
   const oldest = bookmarks.reduce((winner, item) => (item.time < winner.time ? item : winner), bookmarks[0]);

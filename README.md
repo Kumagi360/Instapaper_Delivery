@@ -12,7 +12,7 @@ The goal is to make your saved articles available to Codex workflows without pas
 - Reads bookmark highlights.
 - Archives, unarchives, stars, unstars, or deletes specific bookmarks.
 - Stores OAuth credentials through encrypted systemd credentials on Linux.
-- Sends a daily Snap Reads email through the existing Resend credential.
+- Sends scheduled Instapaper delivery emails through the existing Resend credential.
 - Optionally serves signed archive/delete action links for delivery email buttons.
 
 ## Architecture
@@ -41,12 +41,12 @@ The Node client is dependency-free and signs OAuth 1.0a requests directly. The s
 - `scripts/run_with_resend_credential.sh`: runs send-only commands with the existing Resend credential.
 - `scripts/run_with_delivery_credentials.sh`: runs commands that need both Instapaper and Resend credentials.
 - `scripts/install_skill.sh`: symlinks the tracked skill into `~/.codex/skills/instapaper-delivery`.
-- `scripts/run_daily_instapaper_delivery.sh`: Knlgpt orchestration launcher for the daily Codex-run snap read.
+- `scripts/run_daily_instapaper_delivery.sh`: Knlgpt orchestration launcher for scheduled delivery runs.
 - `scripts/install_orchestration.sh`: installs the local runtime launcher, systemd templates, and environment file.
-- `src/resend_snap_read.mjs`: renders and sends a prepared Snap Read payload.
-- `src/send_daily_snap_read.mjs`: selects the oldest Snap Reads item and sends it.
+- `src/resend_snap_read.mjs`: renders and sends a prepared Instapaper delivery payload.
+- `src/send_daily_snap_read.mjs`: selects the oldest item in the configured Instapaper folder and sends it.
 - `src/instapaper_action_server.mjs`: validates signed delivery action links and archives/deletes bookmarks through the Instapaper API.
-- `systemd/`: service and timer templates for the 10:30 PM Knlgpt-orchestrated daily run.
+- `systemd/`: service and timer templates for the Knlgpt-orchestrated delivery runs.
 - `docs/instapaper-delivery-skill.md`: exported reference copy of the skill instructions.
 
 ## Instapaper API Prerequisite
@@ -124,7 +124,7 @@ Run commands through the credential wrapper:
 
 Use `--json` for machine-readable output where supported.
 
-## Snap Read Email
+## Delivery Email
 
 Manual dummy or one-off send:
 
@@ -137,6 +137,21 @@ env \
 
 This selects the oldest item in the Instapaper `Snap Reads` folder. X/Twitter thread starters are rendered with the visible post text and media available from public embeds. Link-style X posts and direct article links are rendered as a heading, compact summary, and source link.
 
+The sender can also be configured with:
+
+```text
+INSTAPAPER_DELIVERY_NAME=Actionable
+INSTAPAPER_DELIVERY_FOLDER_ID=5254981
+INSTAPAPER_DELIVERY_FOLDER_NAME=Actionable
+INSTAPAPER_DELIVERY_SUMMARY_LABEL=Actionable Summary
+```
+
+Scheduled deliveries are:
+
+- Snap Read: oldest item in `Snap Reads`, daily at `22:30:00`.
+- Actionable: oldest item in `Actionable`, Saturdays at `08:00:00`.
+- Rich Read: oldest item in `Rich Reads`, Sundays at `08:00:00`.
+
 The scheduled run follows the same Knlgpt orchestration shape as the daily digest workflow:
 
 ```text
@@ -144,9 +159,13 @@ The scheduled run follows the same Knlgpt orchestration shape as the daily diges
 ~/.config/knlgpt-orchestration/instapaper-delivery.env
 systemd/instapaper-delivery-snap-read.service
 systemd/instapaper-delivery-snap-read.timer
+systemd/instapaper-delivery-actionable.service
+systemd/instapaper-delivery-actionable.timer
+systemd/instapaper-delivery-rich-read.service
+systemd/instapaper-delivery-rich-read.timer
 ```
 
-The timer is set for `22:30:00` local time. The service loads both encrypted systemd credentials:
+Each delivery service loads both encrypted systemd credentials:
 
 ```text
 instapaper_delivery_credentials

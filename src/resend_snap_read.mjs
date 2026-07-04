@@ -116,11 +116,12 @@ function renderXItem(item, { label }) {
 }
 
 function renderSummary(item) {
+  const summaryLabel = item.summaryLabel || "Article Summary";
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;">
       <tr>
         <td style="padding:20px 20px 18px 20px;">
-          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Article Summary</div>
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">${escapeHtml(summaryLabel)}</div>
           ${renderImages((item.images || []).slice(0, 1), item.title)}
           <div style="font-size:16px;line-height:1.72;color:#2a2824;margin:0;">${paragraphize(item.summary)}</div>
         </td>
@@ -215,7 +216,7 @@ function renderPlainText(snap) {
       }
     }
   } else {
-    lines.push("Article Summary", normalizeText(item.summary), "", item.url);
+    lines.push(item.summaryLabel || "Article Summary", normalizeText(item.summary), "", item.url);
   }
 
   const archiveUrl = buildActionUrl(item, "archive");

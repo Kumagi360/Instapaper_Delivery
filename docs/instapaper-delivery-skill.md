@@ -43,11 +43,15 @@ Run from the repository root.
 
 Use `--json` for machine-readable output where supported.
 
-## Snap Read Email Delivery
+## Instapaper Email Delivery
 
-Use Snap Read delivery when the user asks for a saved item from the `Snap Reads` Instapaper folder to be sent by email.
+Use Instapaper delivery when the user asks for a saved item from an Instapaper folder to be sent by email.
 
-- Prefer the oldest item in `Snap Reads` for the daily run unless the user asks for a different selection rule.
+- Always select the oldest saved bookmark in the configured Instapaper folder unless the user asks for a different selection rule.
+- The scheduled deliveries are:
+  - `Snap Read`: oldest item in `Snap Reads`, daily at 10:30 PM.
+  - `Actionable`: oldest item in `Actionable`, Saturdays at 8:00 AM.
+  - `Rich Read`: oldest item in `Rich Reads`, Sundays at 8:00 AM.
 - Send through Resend using the existing encrypted systemd credential named `resend_api_key`.
 - Use `scripts/run_with_resend_credential.sh` for manual sends.
 - Use `scripts/run_with_delivery_credentials.sh` when one command needs both Instapaper and Resend credentials.
@@ -68,18 +72,18 @@ Content rules:
 - For X/Twitter one-off posts, render one callout card labeled `X post` containing only the visible original post content verbatim.
 - Keep URLs that appear in the original X post text inline and visibly emphasized inside the callout.
 - Include X images inside the X callout itself when available, not after the callout. Do not over-index on images or write image descriptions unless the image itself contains essential readable content.
-- For direct non-X articles or video links, render one card with a clearly labeled `Article Summary` section. Do not use callout styling for the summary prose. Do not add a standalone source link below the summary; use the linked email headline.
+- For direct non-X articles, video links, or any saved item that is not an X post/thread, render one card with a clearly labeled summary section. Use `Article Summary` for Snap Reads, `Actionable Summary` for Actionable deliveries, and `Rich Read Summary` for Rich Read deliveries. Do not use callout styling for the summary prose. Do not add a standalone source link below the summary; use the linked email headline.
 - If an article image is available, include one relevant image inside the article card, not after it.
 - If public X metadata, article metadata, or media extraction is unavailable, still send a compact fallback email using the saved item title or URL, the linked email headline, and the best available visible text or summary. Do not add process notes about the metadata failure.
 - Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.
 - Do not mention other skills or internal implementation sources in the delivered email.
 
-Daily timing and orchestration:
+Timing and orchestration:
 
-- The intended schedule is 10:30 PM local time with a systemd timer.
+- The intended schedules are 10:30 PM daily for Snap Reads, 8:00 AM Saturdays for Actionable, and 8:00 AM Sundays for Rich Reads.
 - The systemd service should invoke the Knlgpt orchestration launcher, not call the Node sender directly.
 - The launcher should run `codex exec` with this skill in daily automation mode, inheriting `CREDENTIALS_DIRECTORY`, `RESEND_FROM`, and `RESEND_TO`.
-- Service and timer templates live in `systemd/instapaper-delivery-snap-read.service` and `systemd/instapaper-delivery-snap-read.timer`.
+- Service and timer templates live in `systemd/`.
 
 ## Boundaries
 

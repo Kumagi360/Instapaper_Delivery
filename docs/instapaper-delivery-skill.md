@@ -54,6 +54,7 @@ Use Snap Read delivery when the user asks for a saved item from the `Snap Reads`
 - Use `src/resend_snap_read.mjs` to render and send a prepared `.transient-snap-read.json` payload.
 - Use `src/send_daily_snap_read.mjs` for unattended daily sends.
 - Do not ask the user to paste Resend or Instapaper credentials into chat.
+- For scheduled delivery, use the Knlgpt orchestration launcher at `scripts/run_daily_instapaper_delivery.sh`, installed to `~/.local/share/instapaper-delivery/run_daily_instapaper_delivery.sh`.
 
 Content rules:
 
@@ -65,9 +66,11 @@ Content rules:
 - Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.
 - Do not mention other skills or internal implementation sources in the delivered email.
 
-Daily timing:
+Daily timing and orchestration:
 
 - The intended schedule is 6:30 AM local time with a systemd timer.
+- The systemd service should invoke the Knlgpt orchestration launcher, not call the Node sender directly.
+- The launcher should run `codex exec` with this skill in daily automation mode, inheriting `CREDENTIALS_DIRECTORY`, `RESEND_FROM`, and `RESEND_TO`.
 - Service and timer templates live in `systemd/instapaper-delivery-snap-read.service` and `systemd/instapaper-delivery-snap-read.timer`.
 
 ## Boundaries

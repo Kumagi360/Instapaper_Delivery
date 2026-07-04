@@ -1,12 +1,14 @@
 [Unit]
-Description=Send the daily Instapaper Delivery snap read
+Description=Daily Instapaper Delivery snap read
+Wants=network-online.target
+After=network-online.target
 
 [Service]
 Type=oneshot
 User=kunalgupta
 WorkingDirectory=/home/kunalgupta/Desktop/knlgpt/Instapaper_Delivery
+Environment=CODEX_HOME=/home/kunalgupta/.codex
+EnvironmentFile=/home/kunalgupta/.config/knlgpt-orchestration/instapaper-delivery.env
 LoadCredentialEncrypted=instapaper_delivery_credentials
 LoadCredentialEncrypted=resend_api_key
-Environment="RESEND_FROM=Codex Digest <onboarding@resend.dev>"
-Environment="RESEND_TO=kunalinks@gmail.com"
-ExecStart=/usr/bin/node /home/kunalgupta/Desktop/knlgpt/Instapaper_Delivery/src/send_daily_snap_read.mjs
+ExecStart=/home/kunalgupta/.local/share/instapaper-delivery/run_daily_instapaper_delivery.sh

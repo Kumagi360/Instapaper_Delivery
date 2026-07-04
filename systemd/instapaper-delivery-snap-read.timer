@@ -4,6 +4,8 @@ Description=Run Instapaper Delivery snap read every morning
 [Timer]
 OnCalendar=*-*-* 06:30:00
 Persistent=true
+RandomizedDelaySec=0
+Unit=instapaper-delivery-snap-read.service
 
 [Install]
 WantedBy=timers.target

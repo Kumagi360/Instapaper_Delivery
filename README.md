@@ -40,9 +40,11 @@ The Node client is dependency-free and signs OAuth 1.0a requests directly. The s
 - `scripts/run_with_resend_credential.sh`: runs send-only commands with the existing Resend credential.
 - `scripts/run_with_delivery_credentials.sh`: runs commands that need both Instapaper and Resend credentials.
 - `scripts/install_skill.sh`: symlinks the tracked skill into `~/.codex/skills/instapaper-delivery`.
+- `scripts/run_daily_instapaper_delivery.sh`: Knlgpt orchestration launcher for the daily Codex-run snap read.
+- `scripts/install_orchestration.sh`: installs the local runtime launcher, systemd templates, and environment file.
 - `src/resend_snap_read.mjs`: renders and sends a prepared Snap Read payload.
 - `src/send_daily_snap_read.mjs`: selects the oldest Snap Reads item and sends it.
-- `systemd/`: service and timer templates for the 6:30 AM daily run.
+- `systemd/`: service and timer templates for the 6:30 AM Knlgpt-orchestrated daily run.
 - `docs/instapaper-delivery-skill.md`: exported reference copy of the skill instructions.
 
 ## Instapaper API Prerequisite
@@ -133,14 +135,29 @@ env \
 
 This selects the oldest item in the Instapaper `Snap Reads` folder. X/Twitter thread starters are rendered with the visible post text and media available from public embeds. Link-style X posts and direct article links are rendered as a heading, compact summary, and source link.
 
-The scheduled run uses:
+The scheduled run follows the same Knlgpt orchestration shape as the daily digest workflow:
 
 ```text
+~/.local/share/instapaper-delivery/run_daily_instapaper_delivery.sh
+~/.config/knlgpt-orchestration/instapaper-delivery.env
 systemd/instapaper-delivery-snap-read.service
 systemd/instapaper-delivery-snap-read.timer
 ```
 
-The timer is set for `06:30:00` local time.
+The timer is set for `06:30:00` local time. The service loads both encrypted systemd credentials:
+
+```text
+instapaper_delivery_credentials
+resend_api_key
+```
+
+Install the local orchestration files:
+
+```bash
+./scripts/install_orchestration.sh
+```
+
+Then install/enable the systemd units using the commands printed by that installer.
 
 ## Other Machines
 

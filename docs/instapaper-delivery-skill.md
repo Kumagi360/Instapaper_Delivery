@@ -57,8 +57,9 @@ Use Snap Read delivery when the user asks for a saved item from the `Snap Reads`
 
 Content rules:
 
-- For X/Twitter items that are readable threads, send the actual visible thread text and images in a polished, mobile-friendly HTML email.
-- If X only exposes the thread starter through public embeds, say so plainly in the email and link to the original.
+- For X/Twitter items that are readable threads, use two compact cards: a synthesized summary card first, then a visible-post card that directly links to the actual X post.
+- If X only exposes the thread starter through public embeds, include the visible starter post and link to the original without adding process notes.
+- Include X images inside the visible-post card when available, but do not over-index on them in the summary or write image descriptions unless the image itself contains essential readable content.
 - For X posts that are mainly links, send a heading, one compact paragraph, and the original link.
 - For direct non-X articles or links, send a heading, one compact paragraph, and the original link.
 - Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.

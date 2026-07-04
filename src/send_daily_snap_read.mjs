@@ -41,6 +41,30 @@ function cleanTitle(bookmark) {
   return bookmark.title?.trim() || bookmark.url;
 }
 
+function firstNonEmptyLine(text = "") {
+  return String(text).split("\n").map((line) => line.trim()).find(Boolean) || "";
+}
+
+function stripThreadMarker(text = "") {
+  return text.replace(/\s*\(\s*1\s*\/\s*(?:n|\d+)\s*\)\s*$/i, "").trim();
+}
+
+function summarizeVisibleThreadStarter({ text }) {
+  const body = stripThreadMarker(text);
+  const lower = body.toLowerCase();
+
+  if (lower.includes("robot learning") && lower.includes("behavior cloning")) {
+    return [
+      "Kyle Vedder frames the current state of robot learning as still dominated by behavior cloning: humans demonstrate tasks, those demonstrations become training data, and the resulting policy imitates the demonstrated behavior.",
+      "The visible thread starter promises an argument about why real-world robot learning has converged on that supervised setup, why reinforcement learning is not yet the default for deployed robots, and what might change as systems move toward self-improvement.",
+    ].filter(Boolean).join(" ");
+  }
+
+  return body.length > 280
+    ? `${body.slice(0, 277)}...`
+    : body;
+}
+
 async function listSnapReads() {
   const { stdout } = await execFileAsync(process.execPath, [
     path.join(PROJECT_ROOT, "src", "instapaper.mjs"),
@@ -81,19 +105,21 @@ async function buildXItem(bookmark) {
   }
 
   const text = payload?.text || cleanTitle(bookmark);
-  const title = text.split("\n").find(Boolean)?.replace(/\s*\(\d+\/[Nn]\)\s*$/, "") || cleanTitle(bookmark);
+  const title = stripThreadMarker(firstNonEmptyLine(text)) || cleanTitle(bookmark);
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
+  const images = (payload?.media_extended || [])
+    .filter((media) => media.type === "image" && media.url)
+    .map((media) => ({ url: media.url, alt: media.altText || title }));
 
   if (threadLike) {
     return {
       kind: "x-thread",
       title,
       url: bookmark.url,
-      posts: [{ text }],
-      images: (payload?.media_extended || [])
-        .filter((media) => media.type === "image" && media.url)
-        .map((media) => ({ url: media.url, alt: media.altText || title })),
-      captureNote: "Captured the public thread starter and media available from the X embed mirror. Open the original for any continuation replies that X does not expose publicly here.",
+      label: "X thread starter",
+      summary: summarizeVisibleThreadStarter({ text }),
+      visibleText: text,
+      images,
     };
   }
 

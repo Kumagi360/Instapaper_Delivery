@@ -50,33 +50,31 @@ function renderImage(url, alt = "") {
 
 function renderThread(item) {
   const imageRows = (item.images || []).map((image) => renderImage(image.url, image.alt || item.title)).join("");
-  const posts = (item.posts || [])
-    .map((post, index) => `
-      <tr>
-        <td style="padding:0 0 16px 0;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #0f5b4f;border-radius:16px;background:#fffdfa;">
-            <tr>
-              <td style="padding:18px 18px 16px 18px;">
-                <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#0f5b4f;margin-bottom:10px;">Post ${index + 1}</div>
-                <div style="font-size:16px;line-height:1.72;color:#2a2824;">${paragraphize(post.text)}</div>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    `)
-    .join("");
-
-  const note = item.captureNote
-    ? `<p style="margin:0 0 18px 0;color:#70695d;font-size:14px;line-height:1.55;">${escapeHtml(item.captureNote)}</p>`
+  const visibleText = item.visibleText
+    ? `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5d9c5;border-left:3px solid #b78a56;border-radius:16px;background:#fffdfa;margin-top:16px;">
+        <tr>
+          <td style="padding:18px 18px 16px 18px;">
+            <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#8b6a3f;margin-bottom:10px;">Visible post</div>
+            <div style="font-size:15px;line-height:1.66;color:#3b3935;margin:0 0 12px 0;">${escapeHtml(item.visibleText).replaceAll("\n", "<br>")}</div>
+            ${imageRows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:2px 0 14px 0;">${imageRows}</table>` : ""}
+            <a href="${escapeHtml(item.url)}" style="color:#0f5b4f;font-size:14px;font-weight:800;text-decoration-color:#7ea99f;text-underline-offset:3px;">Open this post</a>
+          </td>
+        </tr>
+      </table>
+    `
     : "";
 
   return `
-    ${note}
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-      ${posts}
-      ${imageRows}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d7e3dc;border-left:4px solid #0f5b4f;border-radius:16px;background:#fffdfa;">
+      <tr>
+        <td style="padding:20px 20px 18px 20px;">
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#0f5b4f;margin-bottom:10px;">${escapeHtml(item.label || "X thread starter")}</div>
+          <div style="font-size:16px;line-height:1.72;color:#2a2824;">${paragraphize(item.summary)}</div>
+        </td>
+      </tr>
     </table>
+    ${visibleText}
   `;
 }
 
@@ -168,8 +166,9 @@ function renderPlainText(snap) {
   ];
 
   if (item.kind === "x-thread") {
-    for (const [index, post] of (item.posts || []).entries()) {
-      lines.push(`Post ${index + 1}`, normalizeText(post.text), "");
+    lines.push(item.label || "X thread starter", "", normalizeText(item.summary), "");
+    if (item.visibleText) {
+      lines.push("Visible post", normalizeText(item.visibleText), item.url, "");
     }
     if (item.images?.length) {
       lines.push("Images:");

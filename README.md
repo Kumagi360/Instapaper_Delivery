@@ -151,6 +151,7 @@ Scheduled deliveries are:
 - Snap Read: oldest item in `Snap Reads`, daily at `22:30:00`.
 - Actionable: oldest item in `Actionable`, Saturdays at `08:00:00`.
 - Rich Read: oldest item in `Rich Reads`, Sundays at `08:00:00`.
+- Watch: oldest item in `Watch`, Fridays at `17:00:00`, rendered as a `Video` card with a thumbnail when available.
 
 The scheduled run follows the same Knlgpt orchestration shape as the daily digest workflow:
 
@@ -163,6 +164,8 @@ systemd/instapaper-delivery-actionable.service
 systemd/instapaper-delivery-actionable.timer
 systemd/instapaper-delivery-rich-read.service
 systemd/instapaper-delivery-rich-read.timer
+systemd/instapaper-delivery-watch.service
+systemd/instapaper-delivery-watch.timer
 ```
 
 Each delivery service loads both encrypted systemd credentials:

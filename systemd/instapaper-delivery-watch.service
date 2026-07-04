@@ -1,0 +1,20 @@
+[Unit]
+Description=Weekly Instapaper Delivery watch item
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=kunalgupta
+WorkingDirectory=/home/kunalgupta/Desktop/knlgpt/Instapaper_Delivery
+Environment=CODEX_HOME=/home/kunalgupta/.codex
+Environment=INSTAPAPER_DELIVERY_NAME=Watch
+Environment=INSTAPAPER_DELIVERY_FOLDER_ID=5297428
+Environment=INSTAPAPER_DELIVERY_FOLDER_NAME=Watch
+Environment=INSTAPAPER_DELIVERY_SUMMARY_LABEL=Video
+Environment=INSTAPAPER_DELIVERY_CARD_LABEL=Video
+Environment=INSTAPAPER_DELIVERY_FORMAT=video
+EnvironmentFile=/home/kunalgupta/.config/knlgpt-orchestration/instapaper-delivery.env
+LoadCredentialEncrypted=instapaper_delivery_credentials
+LoadCredentialEncrypted=resend_api_key
+ExecStart=/home/kunalgupta/.local/share/instapaper-delivery/run_daily_instapaper_delivery.sh

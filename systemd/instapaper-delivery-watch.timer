@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Instapaper Delivery watch item every Friday evening
+
+[Timer]
+OnCalendar=Fri *-*-* 17:00:00
+Persistent=true
+RandomizedDelaySec=0
+Unit=instapaper-delivery-watch.service
+
+[Install]
+WantedBy=timers.target

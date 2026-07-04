@@ -135,9 +135,9 @@ function renderSnapHtml(snap) {
   const item = snap.item;
   const headline = snap.headline || item.headline || item.title;
   const body = item.kind === "x-thread"
-    ? renderXItem(item, { label: "X thread" })
+    ? renderXItem(item, { label: item.label || "X thread" })
     : item.kind === "x-post"
-      ? renderXItem(item, { label: "X post" })
+      ? renderXItem(item, { label: item.label || "X post" })
       : renderSummary(item);
 
   return `<!doctype html>
@@ -205,7 +205,7 @@ function renderPlainText(snap) {
   ];
 
   if (item.kind === "x-thread" || item.kind === "x-post") {
-    lines.push(item.kind === "x-thread" ? "X thread" : "X post", "");
+    lines.push(item.label || (item.kind === "x-thread" ? "X thread" : "X post"), "");
     if (item.visibleText) {
       lines.push(normalizeText(item.visibleText), "");
     }

@@ -21,6 +21,10 @@ install -m 0644 "$repo_root/systemd/instapaper-delivery-rich-read.service" \
   "$runtime_root/systemd/instapaper-delivery-rich-read.service"
 install -m 0644 "$repo_root/systemd/instapaper-delivery-rich-read.timer" \
   "$runtime_root/systemd/instapaper-delivery-rich-read.timer"
+install -m 0644 "$repo_root/systemd/instapaper-delivery-watch.service" \
+  "$runtime_root/systemd/instapaper-delivery-watch.service"
+install -m 0644 "$repo_root/systemd/instapaper-delivery-watch.timer" \
+  "$runtime_root/systemd/instapaper-delivery-watch.timer"
 install -m 0644 "$repo_root/systemd/instapaper-delivery-action.service" \
   "$runtime_root/systemd/instapaper-delivery-action.service"
 
@@ -47,6 +51,8 @@ echo "- $runtime_root/systemd/instapaper-delivery-actionable.service"
 echo "- $runtime_root/systemd/instapaper-delivery-actionable.timer"
 echo "- $runtime_root/systemd/instapaper-delivery-rich-read.service"
 echo "- $runtime_root/systemd/instapaper-delivery-rich-read.timer"
+echo "- $runtime_root/systemd/instapaper-delivery-watch.service"
+echo "- $runtime_root/systemd/instapaper-delivery-watch.timer"
 echo "- $runtime_root/systemd/instapaper-delivery-action.service"
 echo "- $env_path"
 echo
@@ -57,9 +63,12 @@ echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-actionable.
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-actionable.timer /etc/systemd/system/instapaper-delivery-actionable.timer"
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-rich-read.service /etc/systemd/system/instapaper-delivery-rich-read.service"
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-rich-read.timer /etc/systemd/system/instapaper-delivery-rich-read.timer"
+echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-watch.service /etc/systemd/system/instapaper-delivery-watch.service"
+echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-watch.timer /etc/systemd/system/instapaper-delivery-watch.timer"
 echo "sudo install -m 0644 $runtime_root/systemd/instapaper-delivery-action.service /etc/systemd/system/instapaper-delivery-action.service"
 echo "sudo systemctl daemon-reload"
 echo "sudo systemctl enable --now instapaper-delivery-snap-read.timer"
 echo "sudo systemctl enable --now instapaper-delivery-actionable.timer"
 echo "sudo systemctl enable --now instapaper-delivery-rich-read.timer"
+echo "sudo systemctl enable --now instapaper-delivery-watch.timer"
 echo "sudo systemctl enable --now instapaper-delivery-action.service"

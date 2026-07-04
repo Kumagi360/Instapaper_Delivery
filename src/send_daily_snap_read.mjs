@@ -12,6 +12,8 @@ const PROJECT_ROOT = path.resolve(__dirname, "..");
 const DELIVERY_FOLDER_ID = process.env.INSTAPAPER_DELIVERY_FOLDER_ID || "5255437";
 const DELIVERY_FOLDER_NAME = process.env.INSTAPAPER_DELIVERY_FOLDER_NAME || process.env.INSTAPAPER_SNAP_FOLDER || "Snap Reads";
 const DELIVERY_SUMMARY_LABEL = process.env.INSTAPAPER_DELIVERY_SUMMARY_LABEL || "Article Summary";
+const DELIVERY_CARD_LABEL = process.env.INSTAPAPER_DELIVERY_CARD_LABEL || "";
+const DELIVERY_FORMAT = process.env.INSTAPAPER_DELIVERY_FORMAT || "standard";
 const TRANSIENT_SNAP_PATH = path.join(PROJECT_ROOT, ".transient-snap-read.json");
 
 function isXUrl(url) {
@@ -196,8 +198,11 @@ async function buildXItem(bookmark) {
   const title = stripThreadMarker(firstNonEmptyLine(text)) || cleanTitle(bookmark);
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
   const images = (payload?.media_extended || [])
-    .filter((media) => media.type === "image" && media.url)
-    .map((media) => ({ url: media.url, alt: media.altText || title }));
+    .map((media) => ({
+      url: media.type === "image" ? media.url : media.thumbnail_url || media.url,
+      alt: media.altText || title,
+    }))
+    .filter((image) => image.url);
 
   if (threadLike) {
     return {
@@ -207,9 +212,9 @@ async function buildXItem(bookmark) {
       url: bookmark.url,
       bookmarkId: String(bookmark.bookmark_id || ""),
       actions: buildActionUrls(bookmark),
-      label: "X thread",
+      label: DELIVERY_CARD_LABEL || "X thread",
       summary: "",
-      visibleText: text,
+      visibleText: DELIVERY_FORMAT === "video" ? "" : text,
       images,
     };
   }
@@ -221,8 +226,9 @@ async function buildXItem(bookmark) {
     url: bookmark.url,
     bookmarkId: String(bookmark.bookmark_id || ""),
     actions: buildActionUrls(bookmark),
+    label: DELIVERY_CARD_LABEL || "X post",
     summary: "",
-    visibleText: text,
+    visibleText: DELIVERY_FORMAT === "video" ? "" : text,
     images,
   };
 }
@@ -231,9 +237,11 @@ async function buildSummaryItem(bookmark) {
   const metadata = await fetchArticleMetadata(bookmark.url);
   const title = cleanTitle(bookmark);
   const resolvedTitle = title === bookmark.url && metadata.title ? metadata.title : title;
-  const summary = bookmark.description?.trim()
-    || metadata.description
-    || "Summary unavailable from the saved metadata. Use the linked headline to open the full source.";
+  const summary = DELIVERY_FORMAT === "video"
+    ? ""
+    : bookmark.description?.trim()
+      || metadata.description
+      || "Summary unavailable from the saved metadata. Use the linked headline to open the full source.";
 
   return {
     kind: "summary",

@@ -43,6 +43,32 @@ Run from the repository root.
 
 Use `--json` for machine-readable output where supported.
 
+## Snap Read Email Delivery
+
+Use Snap Read delivery when the user asks for a saved item from the `Snap Reads` Instapaper folder to be sent by email.
+
+- Prefer the oldest item in `Snap Reads` for the daily run unless the user asks for a different selection rule.
+- Send through Resend using the existing encrypted systemd credential named `resend_api_key`.
+- Use `scripts/run_with_resend_credential.sh` for manual sends.
+- Use `scripts/run_with_delivery_credentials.sh` when one command needs both Instapaper and Resend credentials.
+- Use `src/resend_snap_read.mjs` to render and send a prepared `.transient-snap-read.json` payload.
+- Use `src/send_daily_snap_read.mjs` for unattended daily sends.
+- Do not ask the user to paste Resend or Instapaper credentials into chat.
+
+Content rules:
+
+- For X/Twitter items that are readable threads, send the actual visible thread text and images in a polished, mobile-friendly HTML email.
+- If X only exposes the thread starter through public embeds, say so plainly in the email and link to the original.
+- For X posts that are mainly links, send a heading, one compact paragraph, and the original link.
+- For direct non-X articles or links, send a heading, one compact paragraph, and the original link.
+- Preserve an editorial, cream-background email style with dark serif headings, muted green accents, rounded cards, and generous single-column spacing.
+- Do not mention other skills or internal implementation sources in the delivered email.
+
+Daily timing:
+
+- The intended schedule is 6:30 AM local time with a systemd timer.
+- Service and timer templates live in `systemd/instapaper-delivery-snap-read.service` and `systemd/instapaper-delivery-snap-read.timer`.
+
 ## Boundaries
 
 - Confirm before destructive or bulk account changes.

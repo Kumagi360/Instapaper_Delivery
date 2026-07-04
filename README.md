@@ -12,6 +12,7 @@ The goal is to make your saved articles available to Codex workflows without pas
 - Reads bookmark highlights.
 - Archives, unarchives, stars, unstars, or deletes specific bookmarks.
 - Stores OAuth credentials through encrypted systemd credentials on Linux.
+- Sends a daily Snap Reads email through the existing Resend credential.
 
 ## Architecture
 
@@ -36,7 +37,12 @@ The Node client is dependency-free and signs OAuth 1.0a requests directly. The s
 - `src/instapaper.mjs`: Instapaper Full API client.
 - `scripts/setup_systemd_instapaper_credential.sh`: interactive credential setup.
 - `scripts/run_with_instapaper_credential.sh`: runs commands with the encrypted credential mounted at runtime.
+- `scripts/run_with_resend_credential.sh`: runs send-only commands with the existing Resend credential.
+- `scripts/run_with_delivery_credentials.sh`: runs commands that need both Instapaper and Resend credentials.
 - `scripts/install_skill.sh`: symlinks the tracked skill into `~/.codex/skills/instapaper-delivery`.
+- `src/resend_snap_read.mjs`: renders and sends a prepared Snap Read payload.
+- `src/send_daily_snap_read.mjs`: selects the oldest Snap Reads item and sends it.
+- `systemd/`: service and timer templates for the 6:30 AM daily run.
 - `docs/instapaper-delivery-skill.md`: exported reference copy of the skill instructions.
 
 ## Instapaper API Prerequisite
@@ -113,6 +119,28 @@ Run commands through the credential wrapper:
 ```
 
 Use `--json` for machine-readable output where supported.
+
+## Snap Read Email
+
+Manual dummy or one-off send:
+
+```bash
+env \
+  RESEND_FROM='Codex Digest <onboarding@resend.dev>' \
+  RESEND_TO='you@example.com' \
+  ./scripts/run_with_delivery_credentials.sh node ./src/send_daily_snap_read.mjs
+```
+
+This selects the oldest item in the Instapaper `Snap Reads` folder. X/Twitter thread starters are rendered with the visible post text and media available from public embeds. Link-style X posts and direct article links are rendered as a heading, compact summary, and source link.
+
+The scheduled run uses:
+
+```text
+systemd/instapaper-delivery-snap-read.service
+systemd/instapaper-delivery-snap-read.timer
+```
+
+The timer is set for `06:30:00` local time.
 
 ## Other Machines
 

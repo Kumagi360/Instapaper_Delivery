@@ -1,0 +1,18 @@
+{
+  "name": "instapaper",
+  "version": "0.1.0",
+  "description": "Local Instapaper access for saved articles, folders, highlights, and bookmark actions.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Instapaper",
+    "shortDescription": "Read and manage Instapaper.",
+    "longDescription": "Local Instapaper utilities for listing saved articles, reading metadata, fetching highlights, saving URLs, and archiving items with encrypted systemd credential storage.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Use Instapaper saved articles when I ask for read-later triage, article digests, or saved-link management."
+  }
+}

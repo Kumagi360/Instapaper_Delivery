@@ -1,0 +1,6 @@
+.DS_Store
+.env
+.transient-*
+node_modules/
+generated/
+*.log

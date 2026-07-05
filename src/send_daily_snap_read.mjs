@@ -63,6 +63,18 @@ function stripThreadMarker(text = "") {
   return text.replace(/\s*\(\s*1\s*\/\s*(?:n|\d+)\s*\)\s*$/i, "").trim();
 }
 
+function sourceNameFromUrl(url) {
+  try {
+    const host = new URL(url).hostname
+      .replace(/^www\./, "")
+      .replace(/^m\./, "");
+    const [name] = host.split(".");
+    return name ? name.charAt(0).toUpperCase() + name.slice(1) : "Saved item";
+  } catch {
+    return "Saved item";
+  }
+}
+
 function cleanHeadlineSource(text = "") {
   return decodeHtmlEntities(text)
     .replace(/https?:\/\/\S+/gi, " ")
@@ -73,7 +85,47 @@ function cleanHeadlineSource(text = "") {
     .trim();
 }
 
-function makeHeadlineSummary({ title = "", description = "", text = "", fallback = "Saved item" } = {}) {
+function headlineWords(text = "") {
+  return cleanHeadlineSource(text)
+    .replace(/[^\w\s'%-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function truncateHeadline(text = "", fallback = "Saved item") {
+  const words = headlineWords(text).slice(0, 7);
+  return words.join(" ") || fallback;
+}
+
+function extractLinkedInAuthor(text = "") {
+  const parts = decodeHtmlEntities(text).split("|").map((part) => part.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    const author = parts[parts.length - 2].replace(/\s+\d+\s+comments?$/i, "").trim();
+    if (author) {
+      return author;
+    }
+  }
+  return "";
+}
+
+function firstWords(text = "", count = 7) {
+  return headlineWords(firstNonEmptyLine(text)).slice(0, count).join(" ").toLowerCase();
+}
+
+function headlineIsClear(candidate, sourceText = "") {
+  const words = headlineWords(candidate);
+  const generic = new Set(["saved", "post", "article", "thread", "item", "read", "summary", "link", "linkedin", "x"]);
+  const meaningful = words.filter((word) => !generic.has(word.toLowerCase()));
+  if (words.length === 0 || words.length > 7 || meaningful.length < 2) {
+    return false;
+  }
+  if (firstWords(sourceText, words.length) === words.join(" ").toLowerCase()) {
+    return false;
+  }
+  return true;
+}
+
+function makeHeadlineSummary({ title = "", description = "", text = "", url = "", author = "", publisher = "", fallback = "Saved item" } = {}) {
   const source = cleanHeadlineSource(description || title || text || fallback);
   const stopWords = new Set([
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how", "i", "in", "is", "it", "its",
@@ -86,7 +138,15 @@ function makeHeadlineSummary({ title = "", description = "", text = "", fallback
     .filter(Boolean)
     .filter((word) => !stopWords.has(word.toLowerCase()))
     .slice(0, 7);
-  return words.join(" ") || fallback;
+  const candidate = words.join(" ");
+  const titleHeadline = truncateHeadline(title, "");
+  const titleWords = headlineWords(titleHeadline);
+  const titleRepeatsOpening = titleWords.length > 0
+    && firstWords(text, titleWords.length) === titleWords.join(" ").toLowerCase();
+  const fallbackHeadline = titleHeadline && !titleRepeatsOpening
+    ? titleHeadline
+    : truncateHeadline(author || publisher || sourceNameFromUrl(url), fallback);
+  return headlineIsClear(candidate, text || title) ? candidate : fallbackHeadline;
 }
 
 function buildActionUrls(bookmark) {
@@ -199,6 +259,7 @@ async function fetchArticleMetadata(url) {
     return {
       title,
       description,
+      siteName: readMeta(html, ["og:site_name", "application-name"]),
       image: image ? absolutizeUrl(image, response.url || url) : "",
     };
   } catch {
@@ -226,6 +287,9 @@ async function buildXItem(bookmark) {
     title: article.title || title,
     description: article.preview_text || "",
     text,
+    url: bookmark.url,
+    author: payload?.user_name || payload?.user_screen_name || tweet.screenName,
+    publisher: article.title ? "X Article" : "X",
     fallback: "Saved X post",
   });
   const threadLike = /\(\s*1\s*\/\s*(?:n|\d+)\s*\)/i.test(text);
@@ -269,16 +333,12 @@ async function buildLinkedInItem(bookmark) {
   const metadata = await fetchArticleMetadata(bookmark.url);
   const visibleText = decodeHtmlEntities(bookmark.title?.trim() || metadata.description || metadata.title || bookmark.url);
   const title = decodeHtmlEntities(metadata.title || cleanTitle(bookmark));
+  const author = extractLinkedInAuthor(visibleText);
 
   return {
     kind: "x-post",
     title,
-    headline: makeHeadlineSummary({
-      title,
-      description: metadata.description,
-      text: visibleText,
-      fallback: "Saved LinkedIn post",
-    }),
+    headline: truncateHeadline(author || metadata.siteName || sourceNameFromUrl(bookmark.url), "LinkedIn post"),
     url: bookmark.url,
     bookmarkId: String(bookmark.bookmark_id || ""),
     actions: buildActionUrls(bookmark),
@@ -305,6 +365,8 @@ async function buildSummaryItem(bookmark) {
     headline: makeHeadlineSummary({
       title: resolvedTitle,
       description: metadata.description || bookmark.description,
+      url: bookmark.url,
+      publisher: metadata.siteName || sourceNameFromUrl(bookmark.url),
       fallback: "Saved article",
     }),
     url: bookmark.url,

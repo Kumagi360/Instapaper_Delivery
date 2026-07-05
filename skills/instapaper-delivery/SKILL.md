@@ -67,6 +67,7 @@ Content rules:
 - Do not include an `Open original` button. Link the email's main headline to the saved article or post instead.
 - When signed action URLs are available, include `archive` and `delete` buttons at the bottom of every delivery email, across X threads, X posts, and non-X articles. These buttons should act on the actual saved Instapaper bookmark, not merely the source URL.
 - The email header should be a short, hooky content-summary headline under 8 words. Do not copy the first line or title verbatim when the source is a post, thread, or article; compress what the saved item is about.
+- Before sending, self-critique the header: if it is too vague to understand the delivery context in under 8 words, or if it reads like a verbatim first line, use a recognizable article title, author/account name, or publisher/source name instead.
 - Treat Substack links as ordinary article links.
 - Do not put a separate headline/title inside content cards.
 - Do not include standalone action links such as `Open X thread`, `Open X post`, `Read ...`, or `Read the saved article`. The linked email headline is the primary route to the saved item.

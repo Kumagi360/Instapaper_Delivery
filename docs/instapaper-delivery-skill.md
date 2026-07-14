@@ -71,6 +71,7 @@ Content rules:
 - Treat Substack links as ordinary article links.
 - Do not put a separate headline/title inside content cards.
 - Do not include standalone action links such as `Open X thread`, `Open X post`, `Read ...`, or `Read the saved article`. The linked email headline is the primary route to the saved item.
+- The small label above the linked email headline should be the configured delivery name, such as `Snap Read`, `Actionable`, `Rich Read`, or `Watch`, not the generic phrase `Instapaper Delivery`.
 - For X/Twitter items that appear to be threads but whose full extent is not visible, do not synthesize a summary. Render one callout card labeled `X thread` containing only the visible original post content verbatim.
 - For X/Twitter one-off posts, render one callout card labeled `X post` containing only the visible original post content verbatim.
 - Treat LinkedIn posts like X/Twitter posts: render the visible original post text in a callout card rather than as an article summary.

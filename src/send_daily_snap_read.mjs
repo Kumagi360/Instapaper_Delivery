@@ -9,6 +9,7 @@ const execFileAsync = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
+const DELIVERY_NAME = process.env.INSTAPAPER_DELIVERY_NAME || "Snap Read";
 const DELIVERY_FOLDER_ID = process.env.INSTAPAPER_DELIVERY_FOLDER_ID || "5255437";
 const DELIVERY_FOLDER_NAME = process.env.INSTAPAPER_DELIVERY_FOLDER_NAME || process.env.INSTAPAPER_SNAP_FOLDER || "Snap Reads";
 const DELIVERY_SUMMARY_LABEL = process.env.INSTAPAPER_DELIVERY_SUMMARY_LABEL || "Article Summary";
@@ -386,6 +387,8 @@ async function buildSnap(bookmark) {
       : await buildSummaryItem(bookmark);
   return {
     subject: `Instapaper Delivery: ${item.headline || item.title}`,
+    deliveryName: DELIVERY_NAME,
+    deliveryFolderName: DELIVERY_FOLDER_NAME,
     headline: item.headline || item.title,
     preheader: `One saved Instapaper item from ${DELIVERY_FOLDER_NAME} prepared for mobile reading.`,
     item,

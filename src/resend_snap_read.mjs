@@ -134,6 +134,7 @@ function renderSnapHtml(snap) {
   const preheader = snap.preheader || "One saved Instapaper item, prepared for reading.";
   const item = snap.item;
   const headline = snap.headline || item.headline || item.title;
+  const deliveryLabel = snap.deliveryName || snap.deliveryFolderName || "Instapaper Delivery";
   const body = item.kind === "x-thread"
     ? renderXItem(item, { label: item.label || "X thread" })
     : item.kind === "x-post"
@@ -171,7 +172,7 @@ function renderSnapHtml(snap) {
                 <table class="shell" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#fffdf8;border:1px solid rgba(144,124,91,0.18);border-radius:28px;">
                   <tr>
                     <td class="hero" style="padding:42px 46px 24px 46px;background:linear-gradient(180deg,#fffdf8 0%,#fbf6ee 100%);border-bottom:1px solid #ddd4c6;">
-                      <div style="font-size:12px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#0f5b4f;margin-bottom:12px;">Instapaper Delivery</div>
+                      <div style="font-size:12px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:#0f5b4f;margin-bottom:12px;">${escapeHtml(deliveryLabel)}</div>
                       <div class="hero-title" style="font-family:Georgia,'Times New Roman',serif;font-size:46px;line-height:1.04;font-weight:700;letter-spacing:0;color:#1d1d1b;">
                         <a href="${escapeHtml(item.url)}" style="color:#1d1d1b;text-decoration-color:#7ea99f;text-decoration-thickness:1.5px;text-underline-offset:5px;">${escapeHtml(headline)}</a>
                       </div>
